@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'java'
 }
 
@@ -19,9 +20,11 @@ repositories {
 
 dependencies {
     compileOnly "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
+    implementation "com.zaxxer:HikariCP:5.0.1"
+    implementation "org.xerial:sqlite-jdbc:3.42.0.0"
 }
 
-def targetJavaVersion = 8
+def targetJavaVersion = 11
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
     sourceCompatibility = javaVersion
@@ -44,4 +47,8 @@ processResources {
     filesMatching('plugin.yml') {
         expand props
     }
+}
+
+shadowJar {
+    archiveBaseName.set("C:\\Users\\Vitalij\\Desktop\\Spigot Server 1.16.5\\plugins\\hidden-mines-plugin")
 }

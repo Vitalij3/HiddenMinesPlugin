@@ -2,7 +2,7 @@ name: HiddenMinesPlugin
 version: '${version}'
 main: me.salatosik.hiddenminesplugin.HiddenMinesPlugin
 api-version: '1.16'
-prefix: [Hidden mines]
+prefix: Hidden mines
 load: STARTUP
-authors: Salatosik
+authors: [Salatosik]
 description: This plugin adds hidden mines
