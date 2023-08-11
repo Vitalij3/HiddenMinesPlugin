@@ -1,7 +1,6 @@
 package me.salatosik.hiddenminesplugin.listener;
 
 import me.salatosik.hiddenminesplugin.core.database.Database;
-import me.salatosik.hiddenminesplugin.core.database.models.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -11,8 +10,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.List;
 
 public class MineInteractionMineListener extends BaseMineListener {
     public MineInteractionMineListener(JavaPlugin plugin, Database database) {
@@ -50,11 +47,11 @@ public class MineInteractionMineListener extends BaseMineListener {
             Location possibleHookMineLocation = event.getBlock().getLocation();
             UnknownMine possibleMine = new UnknownMine(possibleHookMineLocation.getBlockX(), possibleHookMineLocation.getBlockY(), possibleHookMineLocation.getBlockZ());
 
-            for(Mine mineFromDatabase: minesFromDatabase) {
-                if(mineFromDatabase.equals(possibleMine)) {
+            minesFromDatabase.forEach((minesFromDatabase) -> {
+                if(minesFromDatabase.equals(possibleMine)) {
                     detonateMine(possibleHookMineLocation);
                 }
-            }
+            });
         }
     }
 }

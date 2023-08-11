@@ -8,6 +8,11 @@ public class Mine extends UnknownMine {
         this.mineType = mineType;
     }
 
+    public Mine(UnknownMine unknownMine, MineType mineType) {
+        super(unknownMine.x, unknownMine.y, unknownMine.z);
+        this.mineType = mineType;
+    }
+
     @Override
     public String toString() {
         return "Mine{" +

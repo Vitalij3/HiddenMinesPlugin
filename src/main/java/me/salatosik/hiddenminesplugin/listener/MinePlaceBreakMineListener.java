@@ -12,6 +12,10 @@ import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.*;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -27,50 +31,64 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerPlaceBlock(BlockPlaceEvent event) {
-        if(!itIsMine(event.getBlock())) return;
+        if(event.getBlock().getType() != Material.TNT) return;
 
-        Material placedBlockType = event.getBlock().getType();
-        World placedBlockWorld = event.getBlock().getWorld();
-        Location placedBlockLocation = event.getBlockPlaced().getLocation();
+        Block placedBlock = event.getBlockPlaced();
+        World placedBlockWorld = placedBlock.getWorld();
+        Location placedBlockLocation = placedBlock.getLocation();
         placedBlockLocation.setY(placedBlockLocation.getY() - 1);
         Material bottomPlacedBlockType = placedBlockWorld.getBlockAt(placedBlockLocation).getType();
 
-        if(placedBlockType == Material.TNT && !ALLOWED_GROUND.contains(bottomPlacedBlockType)) {
+        if(!ALLOWED_GROUND.contains(bottomPlacedBlockType)) {
             event.getPlayer().sendMessage(ChatColor.DARK_RED + "You cannot use this mine here.");
             event.setCancelled(true);
             event.getPlayer().getInventory().addItem(MineData.GROUND.toItemStack(plugin));
             return;
         }
 
-        NamespacedKey placedBlockNamespaceKey = null;
-
-        switch(placedBlockType) {
-            case TNT:
-                placedBlockNamespaceKey = new NamespacedKey(plugin, MineData.GROUND.nameSpacedKey);
-                break;
-            case TRIPWIRE_HOOK: placedBlockNamespaceKey = new NamespacedKey(plugin, MineData.HOOK.nameSpacedKey);
-                break;
-        }
-
-        if(placedBlockNamespaceKey == null) return;
-
+        NamespacedKey placedBlockNamespaceKey = new NamespacedKey(plugin, MineData.GROUND.nameSpacedKey);
         String data = event.getItemInHand().getItemMeta().getPersistentDataContainer()
                 .get(placedBlockNamespaceKey, PersistentDataType.STRING);
 
-        if(data != null) {
-            Block block = event.getBlockPlaced();
+        if(data != null && data.equals(MineData.GROUND.persistentData)) {
+            placedBlock.setType(Material.AIR);
+            Mine groundMine = new Mine(placedBlock.getX(), placedBlock.getY() - 1, placedBlock.getZ(), MineType.GROUND);
+            UtilMethods.addMineToDatabase(groundMine, database, logger);
+            removeItemFromInventory(event.getItemInHand(), 1, event.getPlayer().getInventory());
+            event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Ground mine is placed!");
+        }
+    }
 
-            if(data.equals(MineData.HOOK.persistentData)) {
-                Mine hookMine = new Mine(block.getX(), block.getY(), block.getZ(), MineType.HOOK);
-                UtilMethods.addMineToDatabase(hookMine, database, logger);
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerRightClick(PlayerInteractEvent event) {
+        ItemStack clickedItem = event.getItem();
+        if(clickedItem == null) return;
 
-            } else if(data.equals(MineData.GROUND.persistentData)) {
-                block.setType(Material.AIR);
-                Mine groundMine = new Mine(block.getX(), block.getY() - 1, block.getZ(), MineType.GROUND);
-                UtilMethods.addMineToDatabase(groundMine, database, logger);
-                event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "The mine is placed!");
+        Block clickedBlock = event.getClickedBlock();
+        if(clickedBlock == null || event.getClickedBlock().getType() != Material.TRIPWIRE_HOOK) return;
+        if(event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+        ItemMeta clickedItemMeta = clickedItem.getItemMeta();
+        PersistentDataContainer clickedDataContainer = clickedItemMeta.getPersistentDataContainer();
+        NamespacedKey namespacedKey = new NamespacedKey(plugin, MineData.HOOK.nameSpacedKey);
+
+        String clickedPersistentString = clickedDataContainer.get(namespacedKey, PersistentDataType.STRING);
+        if(clickedPersistentString == null || !clickedPersistentString.equals(MineData.HOOK.persistentData)) return;
+
+        Location clickedLocation = clickedBlock.getLocation();
+        UnknownMine clickedUnknownMine = new UnknownMine(clickedLocation.getBlockX(), clickedLocation.getBlockY(), clickedLocation.getBlockZ());
+
+        for(Mine mine: minesFromDatabase) {
+            if(mine.equals(clickedUnknownMine)) {
+                event.getPlayer().sendMessage(ChatColor.DARK_RED + "This is already mine!");
+                return;
             }
         }
+
+        UtilMethods.addMineToDatabase(new Mine(clickedUnknownMine, MineType.HOOK), database, logger);
+        removeItemFromInventory(clickedItem, 1, event.getPlayer().getInventory());
+        event.setCancelled(true);
+        event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Hook mine is placed!");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -91,15 +109,14 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
         switch(mine.mineType) {
             case HOOK:
                 breakedBlockWorld.dropItem(breakedBlockLocation, MineData.HOOK.toItemStack(plugin));
+                breakedBlockWorld.dropItem(breakedBlockLocation, new ItemStack(Material.TRIPWIRE_HOOK, 1));
                 break;
 
             case GROUND:
                 Material itemInMainHand = event.getPlayer().getInventory().getItemInMainHand().getType();
-
                 breakedBlockLocation.setY(breakedBlockLocation.getY() + 1);
                 if(SHOVELS.contains(itemInMainHand)) breakedBlockWorld.dropItem(breakedBlockLocation, MineData.GROUND.toItemStack(plugin));
                 else breakedBlockWorld.createExplosion(breakedBlockLocation, EXPLOSION_POWER);
-
                 break;
         }
 
@@ -108,28 +125,8 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onBlockPhysics(BlockPhysicsEvent event) {
-        Block eventBlock = event.getBlock();
-        Block sourceBlock = event.getSourceBlock();
-        Location eventBlockLocation = eventBlock.getLocation();
-
-        if(itIsPossibleGroundMine(eventBlock)) {
-            Location sourceBlockLocation = sourceBlock.getLocation();
-
-            int eventX = eventBlockLocation.getBlockX();
-            int eventY = eventBlockLocation.getBlockY();
-            int eventZ = eventBlockLocation.getBlockZ();
-
-            int sourceX = sourceBlockLocation.getBlockX();
-            int sourceY = sourceBlockLocation.getBlockY();
-            int sourceZ = sourceBlockLocation.getBlockZ();
-
-            if(eventX == sourceX && eventZ == sourceZ) {
-                if(eventY < sourceY) {
-                    if(sourceY - eventY == 1) {
-                        detonateMine(event.getBlock().getLocation());
-                    }
-                }
-            }
+        if(itIsPossibleMine(event.getBlock())) {
+            detonateMine(event.getBlock().getLocation());
         }
     }
 

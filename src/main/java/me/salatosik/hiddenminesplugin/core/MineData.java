@@ -16,8 +16,8 @@ public enum MineData {
             "this-is-hook-mine",
             new String[]{ "X", "Y" },
             ChatColor.DARK_RED + "Hook mine",
-            new Ingredient[]{ new Ingredient('Y', Material.TRIPWIRE_HOOK), new Ingredient('X', Material.TNT) },
-            Material.TRIPWIRE_HOOK
+            new Ingredient[]{ new Ingredient('Y', Material.STONE_BUTTON), new Ingredient('X', Material.TNT) },
+            Material.TNT
     ),
 
     GROUND(
@@ -25,7 +25,7 @@ public enum MineData {
             "this-is-ground-mine",
             new String[]{ "Y", "X" },
             ChatColor.DARK_RED + " Ground mine",
-            new Ingredient[]{ new Ingredient('Y', Material.STONE_BUTTON), new Ingredient('X', Material.TNT) },
+            new Ingredient[]{ new Ingredient('Y', Material.STONE_PRESSURE_PLATE), new Ingredient('X', Material.TNT) },
             Material.TNT
     );
 

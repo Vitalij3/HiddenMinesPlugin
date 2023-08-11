@@ -9,6 +9,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
@@ -103,6 +105,15 @@ public abstract class BaseMineListener implements Listener, DatabaseListener {
         if(mine != null) {
             UtilMethods.removeMineFromDatabase(mine, database, logger);
             blockLocation.getWorld().createExplosion(blockLocation, EXPLOSION_POWER);
+        }
+    }
+
+    public void removeItemFromInventory(ItemStack itemStack, int amount, Inventory inventory) {
+        int itemAmount = itemStack.getAmount();
+        if(itemAmount == 1) inventory.remove(itemStack);
+        else if(itemAmount > 1) {
+            itemStack.setAmount(amount);
+            inventory.remove(itemStack);
         }
     }
 }
