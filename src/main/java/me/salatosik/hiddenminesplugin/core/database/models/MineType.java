@@ -1,5 +1,11 @@
 package me.salatosik.hiddenminesplugin.core.database.models;
 
 public enum MineType {
-    HOOK, GROUND
+    HOOK("hook"), GROUND("ground");
+
+    public final String mineName;
+
+    MineType(String mineName) {
+        this.mineName = mineName;
+    }
 }

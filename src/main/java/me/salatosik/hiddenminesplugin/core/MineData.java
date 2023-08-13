@@ -16,8 +16,7 @@ public enum MineData {
             "this-is-hook-mine",
             new String[]{ "X", "Y" },
             ChatColor.DARK_RED + "Hook mine",
-            new Ingredient[]{ new Ingredient('Y', Material.STONE_BUTTON), new Ingredient('X', Material.TNT) },
-            Material.TNT
+            new Ingredient[]{ new Ingredient('Y', Material.STONE_BUTTON), new Ingredient('X', Material.TNT) }
     ),
 
     GROUND(
@@ -25,28 +24,27 @@ public enum MineData {
             "this-is-ground-mine",
             new String[]{ "Y", "X" },
             ChatColor.DARK_RED + " Ground mine",
-            new Ingredient[]{ new Ingredient('Y', Material.STONE_PRESSURE_PLATE), new Ingredient('X', Material.TNT) },
-            Material.TNT
+            new Ingredient[]{ new Ingredient('Y', Material.STONE_PRESSURE_PLATE), new Ingredient('X', Material.TNT) }
     );
+
+    public static final Material GENERAL_OUTPUT_ITEM = Material.TNT;
 
     public final String nameSpacedKey;
     public final String[] recipe;
     public final String persistentData;
     public final String localizedName;
     public final Ingredient[] ingredients;
-    public final Material outputItem;
 
-    MineData(String nameSpacedKey, String persistentData, String[] recipe, String localizedName, Ingredient[] ingredients, Material outputItem) {
+    MineData(String nameSpacedKey, String persistentData, String[] recipe, String localizedName, Ingredient[] ingredients) {
         this.nameSpacedKey = nameSpacedKey;
         this.recipe = recipe;
         this.persistentData = persistentData;
         this.localizedName = localizedName;
         this.ingredients = ingredients;
-        this.outputItem = outputItem;
     }
 
     public ItemStack toItemStack(JavaPlugin javaPlugin) {
-        ItemStack itemStack = new ItemStack(outputItem, 1);
+        ItemStack itemStack = new ItemStack(GENERAL_OUTPUT_ITEM, 1);
         ItemMeta itemMeta = itemStack.getItemMeta();
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         container.set(new NamespacedKey(javaPlugin, nameSpacedKey), PersistentDataType.STRING, persistentData);
@@ -56,7 +54,7 @@ public enum MineData {
     }
 
     public ItemStack toItemStack(NamespacedKey namespacedKey) {
-        ItemStack itemStack = new ItemStack(outputItem, 1);
+        ItemStack itemStack = new ItemStack(GENERAL_OUTPUT_ITEM, 1);
         ItemMeta itemMeta = itemStack.getItemMeta();
         PersistentDataContainer container = itemMeta.getPersistentDataContainer();
         container.set(namespacedKey, PersistentDataType.STRING, persistentData);

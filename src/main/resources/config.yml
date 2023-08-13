@@ -1,2 +1,12 @@
 database:
   filename: "database.db"
+
+mine:
+  ground:
+    explosionPower: 2.5
+    cosmetic: true
+    adaptiveCosmetic: true
+
+  hook:
+    explosionPower: 1.0
+    cosmetic: true
