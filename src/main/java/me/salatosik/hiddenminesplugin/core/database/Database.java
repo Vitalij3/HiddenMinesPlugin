@@ -4,6 +4,9 @@ import java.io.File;
 import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.zaxxer.hikari.HikariConfig;
@@ -12,20 +15,16 @@ import me.salatosik.hiddenminesplugin.core.database.interfaces.DatabaseListener;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.MineType;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
+import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.block.Block;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
-public class Database extends BukkitRunnable {
+public class Database {
     private static final String JDBC_PREFIX = "jdbc:sqlite:{url}";
     private final HikariDataSource dataSource;
     private final LinkedList<DatabaseListener> databaseListeners = new LinkedList<>();
-
-    private static final String LOG_PREFIX = "- [Database Cleaner]: ";
-    private final JavaPlugin plugin;
-    private final Logger pluginLogger;
 
     public Database(@NotNull File databaseFile, @NotNull JavaPlugin plugin) throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
@@ -33,7 +32,7 @@ public class Database extends BukkitRunnable {
         HikariConfig hikariConfig = new HikariConfig();
         hikariConfig.setJdbcUrl(JDBC_PREFIX.replace("{url}", databaseFile.getAbsolutePath()));
         hikariConfig.setAutoCommit(true);
-        hikariConfig.setMaximumPoolSize(5);
+        hikariConfig.setMaximumPoolSize(10);
 
         dataSource = new HikariDataSource(hikariConfig);
 
@@ -52,34 +51,9 @@ public class Database extends BukkitRunnable {
             }
         }
 
-        this.plugin = plugin;
-        pluginLogger = plugin.getLogger();
-    }
-
-    private void logWarningWithPrefix(String text) {
-        pluginLogger.warning(LOG_PREFIX + text);
-    }
-
-    @Override
-    public void run() {
-        try {
-            List<World> worlds = plugin.getServer().getWorlds();
-            List<Mine> allMines = getAllMines();
-
-            for(World world: worlds) {
-                World.Environment worldEnv = world.getEnvironment();
-
-                for(Mine mine: allMines) {
-                    if(mine.worldType != worldEnv) continue;
-
-                }
-            }
-
-        } catch(SQLException sqlException) {
-            sqlException.printStackTrace();
-            logWarningWithPrefix("Failed to retrieve all values from database.");
-            logWarningWithPrefix("The plugin may not work correctly.");
-        }
+        Timer timer = new Timer(DatabaseCleaner.TIMER_NAME);
+        DatabaseCleaner databaseCleaner = new DatabaseCleaner(plugin);
+        timer.scheduleAtFixedRate(databaseCleaner, 1000, DatabaseCleaner.UPDATE_RATE);
     }
 
     public void addMine(@NotNull Mine mine) throws SQLException {
@@ -180,5 +154,52 @@ public class Database extends BukkitRunnable {
     public void subscribeListener(DatabaseListener databaseListener) throws SQLException {
         databaseListener.onListenerAdded(getAllMines());
         databaseListeners.add(databaseListener);
+    }
+
+    private class DatabaseCleaner extends TimerTask {
+        private final JavaPlugin plugin;
+        private final Logger logger;
+
+        public static final String LOG_PREFIX = "- [Database Cleaner]: ";
+        public static final String TIMER_NAME = "Database cleaner";
+        public static final long UPDATE_RATE = 1000L;
+
+        public DatabaseCleaner(JavaPlugin plugin) {
+            this.plugin = plugin;
+            logger = plugin.getLogger();
+            databaseLog("Database cleaner initialized!", Level.INFO);
+        }
+
+        private void databaseLog(String str, Level level) {
+            logger.log(level, LOG_PREFIX + str);
+        }
+
+        @Override
+        public synchronized void run() {
+            List<Mine> mines;
+            try { mines = getAllMines(); }
+            catch(SQLException sqlException) {
+                databaseLog("Failed to get all mines!", Level.WARNING);
+                return;
+            }
+
+            for(World world: plugin.getServer().getWorlds()) {
+                for(Mine mine: mines) {
+                    if(mine.worldType != world.getEnvironment()) continue;
+
+                    Block block = world.getBlockAt((int) mine.x, (int) mine.y, (int) mine.z);
+                    if(block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR || block.getType() == Material.VOID_AIR) {
+                        Thread thread = new Thread(() -> {
+                            try { removeMine(mine); }
+                            catch(SQLException sqlException) {
+                                databaseLog("Failed to remove excess block!", Level.WARNING);
+                            }
+                        });
+
+                        thread.start();
+                    }
+                }
+            }
+        }
     }
 }

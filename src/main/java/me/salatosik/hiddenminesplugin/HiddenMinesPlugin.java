@@ -73,7 +73,7 @@ public final class HiddenMinesPlugin extends JavaPlugin {
     private Database initDatabase(String filename) throws IOException, ClassNotFoundException, SQLException {
         File databaseFile = new File(getDataFolder(), filename);
         if(!databaseFile.exists()) if(!databaseFile.createNewFile()) throw new IOException("The database file is not created.");
-        return new Database(databaseFile);
+        return new Database(databaseFile, this);
     }
 
     private void initRecipes() {
