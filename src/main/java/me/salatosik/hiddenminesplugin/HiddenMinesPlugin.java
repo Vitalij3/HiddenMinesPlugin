@@ -22,11 +22,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-// TODO вивести всі виводи для ігрового чату в мовний файл (uk_UA.properties, en_US.properties and etc.)
 public final class HiddenMinesPlugin extends JavaPlugin {
     private final Logger logger = getLogger();
     private Configuration configuration;
@@ -48,8 +45,8 @@ public final class HiddenMinesPlugin extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig();
 
-        if(templateInit("Configuration is not initialized!", () -> { configuration = initConfiguration(); })) return;
-        if(templateInit("Database file is not created!", () -> { database = initDatabase(configuration.databaseConfiguration.filename); })) return;
+        if(templateInit("Configuration is not initialized!", () -> configuration = initConfiguration())) return;
+        if(templateInit("Database file is not created!", () -> database = initDatabase(configuration.getDatabaseConfiguration().getFilename()))) return;
 
         initRecipes();
 
@@ -67,7 +64,7 @@ public final class HiddenMinesPlugin extends JavaPlugin {
     @Override
     public void reloadConfig() {
         super.reloadConfig();
-        templateInit("Failed to reload configuration!", () -> { configuration = initConfiguration(); });
+        templateInit("Failed to reload configuration!", () -> configuration = initConfiguration());
     }
 
     private Database initDatabase(String filename) throws IOException, ClassNotFoundException, SQLException {

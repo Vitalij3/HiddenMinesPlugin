@@ -4,6 +4,8 @@ import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.MineType;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
+import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.Ground;
+import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.Hook;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -64,7 +66,7 @@ public class MineCosmeticListener extends BaseMineListener {
 
     private void spawnMineArmorStand(Mine mine) {
         World mineWorld = findWorldByEnvironmentName(mine.worldType);
-                if(mineWorld == null) return;
+        if(mineWorld == null) return;
 
         Location mineLocation = mine.toLocation(mineWorld);
         formatMineArmorStandLocation(mineLocation, mine.mineType);
@@ -77,7 +79,22 @@ public class MineCosmeticListener extends BaseMineListener {
         mineArmorStand.setSmall(true);
         mineArmorStand.setVisible(false);
         mineArmorStand.setCustomName(MINE_ARMOR_STAND_CUSTOM_NAME);
-        mineArmorStand.setItem(EquipmentSlot.HEAD, new ItemStack(Material.TNT, 1));
+
+        switch(mine.mineType) {
+            case GROUND:
+                Ground groundConfig = configuration.getMineConfiguration().getGround();
+                if(groundConfig.getCosmetic()) {
+                    Material cosmeticMaterial = Material.TNT;
+                    if(groundConfig.getAdaptiveCosmetic()) cosmeticMaterial = mineLocation.getBlock().getType();
+                    mineArmorStand.setItem(EquipmentSlot.HEAD, new ItemStack(cosmeticMaterial, 1));
+                }
+                break;
+
+            case HOOK:
+                Hook hookConfig = configuration.getMineConfiguration().getHook();
+                if(hookConfig.getCosmetic()) mineArmorStand.setItem(EquipmentSlot.HEAD, new ItemStack(Material.TNT, 1));
+                break;
+        }
     }
 
     private void removeMineArmorStand(Mine mine) {

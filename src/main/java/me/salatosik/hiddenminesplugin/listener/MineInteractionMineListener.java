@@ -26,7 +26,7 @@ public class MineInteractionMineListener extends BaseMineListener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerMove(PlayerMoveEvent event) {
         Location moveBlockLocation = event.getTo().getBlock().getLocation();
-        moveBlockLocation.setY(moveBlockLocation.getY() - 1);
+        moveBlockLocation.setY((int) moveBlockLocation.getY() - 1);
 
         World moveBlockWorld = moveBlockLocation.getWorld();
         Block moveBlockBottom = moveBlockWorld.getBlockAt(moveBlockLocation);

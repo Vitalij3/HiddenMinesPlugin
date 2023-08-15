@@ -4,7 +4,6 @@ import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.interfaces.DatabaseListener;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.MineType;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.Location;
@@ -17,8 +16,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Logger;
 
 public abstract class BaseMineListener implements DatabaseListener, Listener {
@@ -66,11 +65,11 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         }
     }
 
-    protected LinkedList<Mine> minesFromDatabase;
+    protected LinkedBlockingDeque<Mine> minesFromDatabase;
 
     @Override
     public void onListenerAdded(List<Mine> mines) {
-        minesFromDatabase = new LinkedList<>(mines);
+        minesFromDatabase = new LinkedBlockingDeque<>(mines);
     }
 
     @Override
@@ -80,7 +79,9 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
 
     @Override
     public void onMineRemove(Mine mine) {
-        minesFromDatabase.remove(mine);
+        if(!minesFromDatabase.isEmpty()) {
+            minesFromDatabase.remove(mine);
+        }
     }
 
     abstract String getChildClassName();
@@ -110,37 +111,32 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         return itIsMine(unknownMine);
     }
 
-    private void removeMine(Mine mine) {
-        if(mine != null) UtilMethods.removeMineFromDatabase(mine, database, logger);
-    }
-
     private void detonateMine(Mine mine, World world) {
         Location location = new Location(world, mine.x, mine.y, mine.z);
         switch(mine.mineType) {
             case GROUND:
-                world.createExplosion(location, (float) configuration.mineConfiguration.ground.explosionPower);
+                world.createExplosion(location, (float) configuration.getMineConfiguration().getGround().getExplosionPower());
                 break;
 
             case HOOK:
-                world.createExplosion(location, (float) configuration.mineConfiguration.hook.explosionPower);
+                world.createExplosion(location, (float) configuration.getMineConfiguration().getHook().getExplosionPower());
                 break;
         }
     }
 
     public void detonateMineAndRemoveFromDatabase(Location blockLocation) {
-        Mine mine = UtilMethods.findMineByLocation(minesFromDatabase, blockLocation);
-        if(mine == null) return;
-
-        removeMine(mine);
-        detonateMine(mine, blockLocation.getWorld());
+        detonateMineAndRemoveFromDatabase(blockLocation, false);
     }
 
     public void detonateMineAndRemoveFromDatabase(Location blockLocation, boolean withoutDetonation) {
         Mine mine = UtilMethods.findMineByLocation(minesFromDatabase, blockLocation);
         if(mine == null) return;
 
-        removeMine(mine);
-        if(!withoutDetonation) detonateMine(mine, blockLocation.getWorld());
+        UtilMethods.createBukkitAsyncThreadAndStart(plugin,
+                () -> UtilMethods.removeMineFromDatabase(mine, database, logger,
+                        (v) -> UtilMethods.createBukkitThreadAndStart(plugin, () -> {
+                            if(!withoutDetonation) detonateMine(mine, blockLocation.getWorld());
+        })));
     }
 
     public void removeItemFromInventory(ItemStack itemStack, int amount, Inventory inventory) {

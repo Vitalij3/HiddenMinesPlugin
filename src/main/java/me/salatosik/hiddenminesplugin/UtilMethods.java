@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 public class UtilMethods {
@@ -29,20 +30,38 @@ public class UtilMethods {
         return findMineByUnknownMine(mines, unknownMine);
     }
 
-    public static void addMineToDatabase(Mine mine, Database database, Logger logger) {
-        try { database.addMine(mine); }
-        catch(SQLException exception) {
+    public static void addMineToDatabase(Mine mine, Database database, Logger logger, Consumer<SQLException> onException, Consumer<Object> onComplete) {
+        try {
+            database.addMine(mine);
+            if(onComplete != null) onComplete.accept(new Object());
+        } catch(SQLException exception) {
             exception.printStackTrace();
+            if(onException != null) onException.accept(exception);
             logger.warning("Failed add the mine to database!");
         }
     }
 
-    public static void removeMineFromDatabase(Mine mine, Database database, Logger logger) {
-        try { database.removeMine(mine); }
-        catch(SQLException sqlException) {
+    public static void addMineToDatabase(Mine mine, Database database, Logger logger, Consumer<Object> onComplete) {
+        addMineToDatabase(mine, database, logger, null, onComplete);
+    }
+
+    public static void removeMineFromDatabase(Mine mine, Database database, Logger logger, Consumer<SQLException> onException, Consumer<Object> onComplete) {
+        try {
+            database.removeMine(mine);
+            if(onComplete != null) onComplete.accept(new Object());
+        } catch(SQLException sqlException) {
             sqlException.printStackTrace();
+            if(onException != null) onException.accept(sqlException);
             logger.warning("Failed to remove mine from database. Mine: " + mine);
         }
+    }
+
+    public static void removeMineFromDatabase(Mine mine, Database database, Logger logger) {
+        removeMineFromDatabase(mine, database, logger, null, null);
+    }
+
+    public static void removeMineFromDatabase(Mine mine, Database database, Logger logger, Consumer<Object> onComplete) {
+        removeMineFromDatabase(mine, database, logger, null, onComplete);
     }
 
     public static UnknownMine getUnknownMineByBlock(Block block) {
@@ -86,5 +105,10 @@ public class UtilMethods {
     public static void createBukkitThreadAndStart(JavaPlugin javaPlugin, Runnable runnable) {
         BukkitRunnableWrapper bukkitRunnableWrapper = new BukkitRunnableWrapper(runnable);
         bukkitRunnableWrapper.runTask(javaPlugin);
+    }
+
+    public static void createBukkitAsyncThreadAndStart(JavaPlugin javaPlugin, Runnable runnable) {
+        BukkitRunnableWrapper bukkitRunnableWrapper = new BukkitRunnableWrapper(runnable);
+        bukkitRunnableWrapper.runTaskAsynchronously(javaPlugin);
     }
 }

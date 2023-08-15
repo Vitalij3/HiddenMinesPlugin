@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -15,6 +16,7 @@ import me.salatosik.hiddenminesplugin.core.database.interfaces.DatabaseListener;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.MineType;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
+import me.salatosik.hiddenminesplugin.utils.BukkitRunnableWrapper;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -25,6 +27,7 @@ public class Database {
     private static final String JDBC_PREFIX = "jdbc:sqlite:{url}";
     private final HikariDataSource dataSource;
     private final LinkedList<DatabaseListener> databaseListeners = new LinkedList<>();
+    private final JavaPlugin plugin;
 
     public Database(@NotNull File databaseFile, @NotNull JavaPlugin plugin) throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
@@ -51,9 +54,16 @@ public class Database {
             }
         }
 
+        this.plugin = plugin;
+
         Timer timer = new Timer(DatabaseCleaner.TIMER_NAME);
         DatabaseCleaner databaseCleaner = new DatabaseCleaner(plugin);
         timer.scheduleAtFixedRate(databaseCleaner, 1000, DatabaseCleaner.UPDATE_RATE);
+    }
+
+    private void notifyListeners(Consumer<DatabaseListener> consumer) {
+        BukkitRunnableWrapper bukkitRunnable = new BukkitRunnableWrapper(() -> databaseListeners.forEach((listener) -> consumer.accept(listener)));
+        bukkitRunnable.runTask(plugin);
     }
 
     public void addMine(@NotNull Mine mine) throws SQLException {
@@ -68,7 +78,7 @@ public class Database {
                 preparedStatement.setString(5, mine.worldType.name());
                 preparedStatement.execute();
 
-                databaseListeners.forEach((listener) -> { listener.onMineAdd(mine); });
+                notifyListeners((listener) -> listener.onMineAdd(mine));
             } finally {
                 connection.close();
             }
@@ -87,7 +97,7 @@ public class Database {
                 preparedStatement.setString(5, mine.worldType.name());
                 preparedStatement.execute();
 
-                databaseListeners.forEach((listener) -> { listener.onMineRemove(mine); });
+                notifyListeners((listener) -> listener.onMineRemove(mine));
 
             } finally {
                 connection.close();
