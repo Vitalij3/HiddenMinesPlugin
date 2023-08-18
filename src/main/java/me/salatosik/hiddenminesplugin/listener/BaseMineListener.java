@@ -115,11 +115,21 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         Location location = new Location(world, mine.x, mine.y, mine.z);
         switch(mine.mineType) {
             case GROUND:
-                world.createExplosion(location, (float) configuration.getMineConfiguration().getGround().getExplosionPower());
+                world.createExplosion(
+                        location,
+                        (float) configuration.getMineConfiguration().getGround().getExplosionPower(),
+                        configuration.getMineConfiguration().getGround().getFireBlocks(),
+                        configuration.getMineConfiguration().getGround().getBreakBlocks()
+                );
                 break;
 
             case HOOK:
-                world.createExplosion(location, (float) configuration.getMineConfiguration().getHook().getExplosionPower());
+                world.createExplosion(
+                        location,
+                        (float) configuration.getMineConfiguration().getHook().getExplosionPower(),
+                        configuration.getMineConfiguration().getHook().getFireBlocks(),
+                        configuration.getMineConfiguration().getHook().getBreakBlocks()
+                );
                 break;
         }
     }

@@ -97,14 +97,18 @@ public final class HiddenMinesPlugin extends JavaPlugin {
         double groundMineExplosionPower = fc.getDouble("mine.ground.explosionPower");
         boolean groundMineCosmetic = fc.getBoolean("mine.ground.cosmetic");
         boolean groundMineAdaptiveCosmetic = fc.getBoolean("mine.ground.adaptiveCosmetic");
+        boolean goundBreakBlocks = fc.getBoolean("mine.ground.breakBlocks");
+        boolean groundFireBlocks = fc.getBoolean("mine.ground.fireBlocks");
 
         // primitive attrs for mine.hook
         double hookMineExplosionPower = fc.getDouble("mine.hook.explosionPower");
         boolean hookMineCosmetic = fc.getBoolean("mine.hook.cosmetic");
+        boolean hookMineBreakBlocks = fc.getBoolean("mine.hook.breakBlocks");
+        boolean hookMineFireBlocks = fc.getBoolean("mine.hook.fireBlocks");
 
         // mines configuration
-        Ground groundMineConfiguration = new Ground(groundMineExplosionPower, groundMineCosmetic, groundMineAdaptiveCosmetic);
-        Hook hookMineConfiguration = new Hook(hookMineExplosionPower, hookMineCosmetic);
+        Ground groundMineConfiguration = new Ground(groundMineExplosionPower, groundMineCosmetic, groundMineAdaptiveCosmetic, goundBreakBlocks, groundFireBlocks);
+        Hook hookMineConfiguration = new Hook(hookMineExplosionPower, hookMineCosmetic, hookMineBreakBlocks, hookMineFireBlocks);
 
         // all mines configuration
         MineConfiguration mineConfiguration = new MineConfiguration(groundMineConfiguration, hookMineConfiguration);

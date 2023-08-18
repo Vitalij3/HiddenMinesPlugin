@@ -6,7 +6,11 @@ mine:
     explosionPower: 2.5
     cosmetic: true
     adaptiveCosmetic: true
+    breakBlocks: true
+    fireBlocks: true
 
   hook:
     explosionPower: 1.0
     cosmetic: true
+    breakBlocks: true
+    fireBlocks: true
