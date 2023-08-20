@@ -2,9 +2,10 @@ package me.salatosik.hiddenminesplugin;
 
 import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
-import me.salatosik.hiddenminesplugin.listener.MineCosmeticListener;
-import me.salatosik.hiddenminesplugin.listener.MineInteractionMineListener;
-import me.salatosik.hiddenminesplugin.listener.MinePlaceBreakMineListener;
+import me.salatosik.hiddenminesplugin.event.command.client.RemoveMinesExecutor;
+import me.salatosik.hiddenminesplugin.event.listener.MineCosmeticListener;
+import me.salatosik.hiddenminesplugin.event.listener.MineInteractionMineListener;
+import me.salatosik.hiddenminesplugin.event.listener.MinePlaceBreakMineListener;
 import me.salatosik.hiddenminesplugin.utils.CommonFunctionThrowsException;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import me.salatosik.hiddenminesplugin.utils.configuration.database.DatabaseConfiguration;
@@ -13,6 +14,9 @@ import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.Ground;
 import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.Hook;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -54,6 +58,9 @@ public final class HiddenMinesPlugin extends JavaPlugin {
         pluginManager.registerEvents(new MinePlaceBreakMineListener(this, database, configuration), this);
         pluginManager.registerEvents(new MineInteractionMineListener(this, database, configuration), this);
         pluginManager.registerEvents(new MineCosmeticListener(this, database, configuration), this);
+
+        RemoveMinesExecutor removeMinesExecutor = new RemoveMinesExecutor(this, database, configuration);
+        initCommandExecutor("remove", removeMinesExecutor, removeMinesExecutor);
     }
 
     @Override
@@ -114,5 +121,13 @@ public final class HiddenMinesPlugin extends JavaPlugin {
         MineConfiguration mineConfiguration = new MineConfiguration(groundMineConfiguration, hookMineConfiguration);
 
         return new Configuration(databaseConfiguration, mineConfiguration);
+    }
+
+    private void initCommandExecutor(String commandName, CommandExecutor commandExecutor, TabCompleter tabCompleter) {
+        PluginCommand pluginCommand = getCommand(commandName);
+        if(pluginCommand != null) {
+            pluginCommand.setExecutor(commandExecutor);
+            pluginCommand.setTabCompleter(tabCompleter);
+        }
     }
 }

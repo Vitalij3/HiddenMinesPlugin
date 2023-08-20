@@ -1,4 +1,4 @@
-package me.salatosik.hiddenminesplugin.listener;
+package me.salatosik.hiddenminesplugin.event.listener;
 
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
@@ -57,10 +57,8 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
 
         try {
             database.subscribeListener(this);
-            logger.info("Database listener in " + getChildClassName() + " is initialized!");
         } catch(SQLException sqlException) {
             sqlException.printStackTrace();
-            logger.warning("Database listener in " + getChildClassName() + " is not initialized!");
             plugin.getPluginLoader().disablePlugin(plugin);
         }
     }
@@ -84,34 +82,32 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         }
     }
 
-    abstract String getChildClassName();
-
-    public boolean itIsPossibleMine(Block block) {
+    protected boolean itIsPossibleMine(Block block) {
         Material blockType = block.getType();
         return ALLOWED_GROUND_MINE_GROUNDS.contains(blockType) || blockType == Material.TRIPWIRE_HOOK;
     }
 
-    public boolean itIsPossibleGroundMine(Block block) {
+    protected boolean itIsPossibleGroundMine(Block block) {
         Material material = block.getType();
         return ALLOWED_GROUND_MINE_GROUNDS.contains(material);
     }
 
-    public boolean itIsPossibleHookMine(Block block) {
+    protected boolean itIsPossibleHookMine(Block block) {
         Material material = block.getType();
         return material == Material.TRIPWIRE_HOOK;
     }
 
-    public boolean itIsMine(UnknownMine unknownMine) {
+    protected boolean itIsMine(UnknownMine unknownMine) {
         for(Mine mine: minesFromDatabase) if(mine.equals(unknownMine)) return true;
         return false;
     }
 
-    public boolean itIsMine(Block block) {
+    protected boolean itIsMine(Block block) {
         UnknownMine unknownMine = UtilMethods.getUnknownMineByBlock(block);
         return itIsMine(unknownMine);
     }
 
-    private void detonateMine(Mine mine, World world) {
+    protected void detonateMine(Mine mine, World world) {
         Location location = new Location(world, mine.x, mine.y, mine.z);
         switch(mine.mineType) {
             case GROUND:
@@ -134,11 +130,11 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         }
     }
 
-    public void detonateMineAndRemoveFromDatabase(Location blockLocation) {
+    protected void detonateMineAndRemoveFromDatabase(Location blockLocation) {
         detonateMineAndRemoveFromDatabase(blockLocation, false);
     }
 
-    public void detonateMineAndRemoveFromDatabase(Location blockLocation, boolean withoutDetonation) {
+    protected void detonateMineAndRemoveFromDatabase(Location blockLocation, boolean withoutDetonation) {
         Mine mine = UtilMethods.findMineByLocation(minesFromDatabase, blockLocation);
         if(mine == null) return;
 
@@ -149,7 +145,7 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         })));
     }
 
-    public void removeItemFromInventory(ItemStack itemStack, int amount, Inventory inventory) {
+    protected void removeItemFromInventory(ItemStack itemStack, int amount, Inventory inventory) {
         int itemAmount = itemStack.getAmount();
         if(itemAmount == 1) inventory.remove(itemStack);
         else if(itemAmount > 1) {

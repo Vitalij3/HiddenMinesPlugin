@@ -6,3 +6,14 @@ prefix: Hidden mines
 load: STARTUP
 authors: [Salatosik]
 description: This plugin adds hidden mines
+
+permissions:
+  hiddenMinesPlugin.command:
+    default: op
+    description: Allows to use the plugin commands
+
+commands:
+  remove:
+    description: Detonates the mines on selected radius
+    permission: hiddenMinesPlugin.command
+    usage: /detonate <detonate:[true|false]> <radius> <max:optional>

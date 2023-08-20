@@ -1,4 +1,4 @@
-package me.salatosik.hiddenminesplugin.listener;
+package me.salatosik.hiddenminesplugin.event.listener;
 
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
@@ -12,7 +12,6 @@ import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.FallingBlock;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,11 +22,6 @@ import java.util.List;
 public class MineCosmeticListener extends BaseMineListener {
     public MineCosmeticListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
-    }
-
-    @Override
-    String getChildClassName() {
-        return this.getClass().getName();
     }
 
     @Override

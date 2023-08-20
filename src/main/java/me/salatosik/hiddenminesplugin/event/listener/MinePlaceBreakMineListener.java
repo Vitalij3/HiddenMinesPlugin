@@ -1,4 +1,4 @@
-package me.salatosik.hiddenminesplugin.listener;
+package me.salatosik.hiddenminesplugin.event.listener;
 
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import me.salatosik.hiddenminesplugin.core.MineData;
@@ -25,11 +25,6 @@ import java.util.List;
 public class MinePlaceBreakMineListener extends BaseMineListener {
     public MinePlaceBreakMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
-    }
-
-    @Override
-    String getChildClassName() {
-        return this.getClass().getName();
     }
 
     private enum SetupMineState {

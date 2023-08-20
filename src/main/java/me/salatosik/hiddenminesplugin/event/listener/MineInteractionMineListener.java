@@ -1,4 +1,4 @@
-package me.salatosik.hiddenminesplugin.listener;
+package me.salatosik.hiddenminesplugin.event.listener;
 
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
@@ -16,11 +16,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class MineInteractionMineListener extends BaseMineListener {
     public MineInteractionMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
-    }
-
-    @Override
-    String getChildClassName() {
-        return this.getClass().getName();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
