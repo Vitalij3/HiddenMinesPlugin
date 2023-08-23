@@ -131,13 +131,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
         switch(mine.mineType) {
             case HOOK:
                 UtilMethods.createBukkitAsyncThreadAndStart(plugin,
-                        () -> UtilMethods.removeMineFromDatabase(mine, database, logger, (v) -> {
-
-                    if(eventPlayerGamemode != GameMode.CREATIVE) {
-                        breakedBlockWorld.dropItem(breakedBlockLocation, MineData.HOOK.toItemStack(plugin));
-                        breakedBlockWorld.dropItem(breakedBlockLocation, new ItemStack(Material.TRIPWIRE_HOOK, 1));
-                    }
-                }));
+                        () -> UtilMethods.removeMineFromDatabase(mine, database, logger));
                 break;
 
             case GROUND:
@@ -148,7 +142,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
                             UtilMethods.removeMineFromDatabase(mine, database, logger, (v) -> {
 
                         if(eventPlayerGamemode != GameMode.CREATIVE) {
-                            breakedBlockWorld.dropItem(breakedBlockLocation, MineData.GROUND.toItemStack(plugin));
+                            UtilMethods.createBukkitThreadAndStart(plugin, () -> breakedBlockWorld.dropItem(breakedBlockLocation, MineData.GROUND.toItemStack(plugin)));
                         }
                     }));
                 } else detonateMineAndRemoveFromDatabase(breakedBlockLocation);
@@ -166,7 +160,9 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockDamage(BlockDamageEvent event) {
         if(itIsPossibleMine(event.getBlock())) {
-            detonateMineAndRemoveFromDatabase(event.getBlock().getLocation());
+            if(!SHOVELS.contains(event.getItemInHand().getType())) {
+                detonateMineAndRemoveFromDatabase(event.getBlock().getLocation());
+            }
         }
     }
 

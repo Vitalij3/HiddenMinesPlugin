@@ -3,6 +3,7 @@ package me.salatosik.hiddenminesplugin.event.command.client;
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
+import me.salatosik.hiddenminesplugin.core.database.models.MineType;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -27,18 +28,23 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
 
     @Override
     void onCommand(@NotNull Player player, @NotNull Command command, @NotNull String[] args) {
-        if(args.length != 3 && args.length != 2) return;
+        if(args.length != 2 && args.length != 4 && args.length != 3) return;
         int radius, max;
         boolean detonate;
+        MineType type;
 
         try {
-            radius = Integer.parseInt(args[1]);
-
-            if(args.length == 3) max = Integer.parseInt(args[2]);
-            else max = Integer.MAX_VALUE;
-
             if(!args[0].equalsIgnoreCase("true") && !args[0].equalsIgnoreCase("false")) throw new Exception();
             else detonate = Boolean.parseBoolean(args[0]);
+
+            radius = Integer.parseInt(args[1]);
+
+            try { type = MineType.valueOf(args[2].toUpperCase()); }
+            catch(ArrayIndexOutOfBoundsException ex) { type = MineType.EMPTY; }
+
+            try { max = Integer.parseInt(args[3]); }
+            catch(ArrayIndexOutOfBoundsException ex) { max = Integer.MAX_VALUE; }
+
         } catch(Exception exception) {
             player.sendMessage(ChatColor.DARK_RED + "Invalid values!");
             return;
@@ -63,6 +69,7 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
             Mine mine = minesFromDatabase.get(i);
 
             if(mine.worldType != playerWorld.getEnvironment()) continue;
+            if(type != MineType.EMPTY) if(mine.mineType != type) continue;
 
             Vector mineVector = new Vector(mine.x, mine.y, mine.z);
             double distance = playerVector.distance(mineVector);
@@ -134,11 +141,24 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                 break;
 
             case 3:
-                String strNumber = args[1];
-                int intNumber;
+                for(MineType mineType: MineType.values()) list.add(mineType.name().toLowerCase());
+                break;
 
-                try { intNumber = Integer.parseInt(strNumber); }
-                catch(NumberFormatException exception) { return list; }
+            case 4:
+                int radius;
+                MineType type;
+
+                try { radius = Integer.parseInt(args[1]); }
+                catch(NumberFormatException | IndexOutOfBoundsException exception) { return list; }
+
+                try {
+                    String mineNameFromArgs = args[2].toUpperCase();
+                    type = MineType.valueOf(mineNameFromArgs);
+                } catch(IndexOutOfBoundsException indexOutOfBoundsException) {
+                    return list;
+                } catch(IllegalArgumentException illegalArgumentException) {
+                    type = MineType.EMPTY;
+                }
 
                 Vector playerVector = player.getLocation().toVector();
                 World playerWorld = player.getLocation().getWorld();
@@ -146,9 +166,10 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
 
                 for(Mine mine: minesFromDatabase) {
                     if(mine.worldType != playerWorld.getEnvironment()) continue;
+                    if(type != MineType.EMPTY) if(type != mine.mineType) continue;
                     Vector mineVector = new Vector(mine.x, mine.y, mine.z);
                     double distance = playerVector.distance(mineVector);
-                    if (distance <= intNumber) count++;
+                    if (distance <= radius) count++;
                 }
 
                 list.add(String.valueOf(count));

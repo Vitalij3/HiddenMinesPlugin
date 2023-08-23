@@ -16,4 +16,4 @@ commands:
   remove:
     description: Detonates the mines on selected radius
     permission: hiddenMinesPlugin.command
-    usage: /detonate <detonate:[true|false]> <radius> <max:optional>
+    usage: /detonate <detonate:[true|false]> <radius> <type> <max:optional>
