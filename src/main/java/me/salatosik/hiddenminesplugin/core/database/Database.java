@@ -4,8 +4,6 @@ import java.io.File;
 import java.sql.*;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,7 +19,9 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class Database {
     private static final String JDBC_PREFIX = "jdbc:sqlite:{url}";
@@ -56,9 +56,9 @@ public class Database {
 
         this.plugin = plugin;
 
-        Timer timer = new Timer(DatabaseCleaner.TIMER_NAME);
+
         DatabaseCleaner databaseCleaner = new DatabaseCleaner(plugin);
-        timer.scheduleAtFixedRate(databaseCleaner, 1000, DatabaseCleaner.UPDATE_RATE);
+        databaseCleaner.runTaskTimer(plugin, 20, DatabaseCleaner.UPDATE_RATE);
     }
 
     private void notifyListeners(Consumer<DatabaseListener> consumer) {
@@ -103,6 +103,33 @@ public class Database {
                 connection.close();
             }
         }
+    }
+
+    public void removeMines(@NotNull List<Mine> mines, @Nullable Consumer<Mine> onEach) throws SQLException {
+        String sql = "delete from mines where x = ? and y = ? and z = ? and mineType = ? and worldType = ?";
+
+        try(Connection connection = dataSource.getConnection()) {
+            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                for(Mine mine: mines) {
+                    preparedStatement.setFloat(1, mine.x);
+                    preparedStatement.setFloat(2, mine.y);
+                    preparedStatement.setFloat(3, mine.z);
+                    preparedStatement.setString(4, mine.mineType.name());
+                    preparedStatement.setString(5, mine.worldType.name());
+                    preparedStatement.execute();
+
+                    if(onEach != null) onEach.accept(mine);
+                }
+
+            } finally {
+                notifyListeners((listener) -> listener.onMineRemoveList(mines));
+                connection.close();
+            }
+        }
+    }
+
+    public void removeMines(@NotNull List<Mine> mines) throws SQLException {
+        removeMines(mines, null);
     }
 
     public Mine findMine(UnknownMine unknownMine) throws SQLException {
@@ -166,13 +193,12 @@ public class Database {
         databaseListeners.add(databaseListener);
     }
 
-    private class DatabaseCleaner extends TimerTask {
+    private class DatabaseCleaner extends BukkitRunnable {
         private final JavaPlugin plugin;
         private final Logger logger;
 
         public static final String LOG_PREFIX = "- [Database Cleaner]: ";
-        public static final String TIMER_NAME = "Database cleaner";
-        public static final long UPDATE_RATE = 1000L;
+        public static final long UPDATE_RATE = 20L;
 
         public DatabaseCleaner(JavaPlugin plugin) {
             this.plugin = plugin;

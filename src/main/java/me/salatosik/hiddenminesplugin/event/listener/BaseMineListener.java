@@ -82,6 +82,11 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         }
     }
 
+    @Override
+    public void onMineRemoveList(List<Mine> removedMines) {
+        minesFromDatabase.removeAll(removedMines);
+    }
+
     protected boolean itIsPossibleMine(Block block) {
         Material blockType = block.getType();
         return ALLOWED_GROUND_MINE_GROUNDS.contains(blockType) || blockType == Material.TRIPWIRE_HOOK;

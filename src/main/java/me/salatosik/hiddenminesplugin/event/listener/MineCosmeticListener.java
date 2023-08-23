@@ -39,7 +39,13 @@ public class MineCosmeticListener extends BaseMineListener {
     @Override
     public void onListenerAdded(List<Mine> mines) {
         super.onListenerAdded(mines);
-        for(Mine mine: mines) spawnMineArmorStand(mine);
+        mines.forEach(this::spawnMineArmorStand);
+    }
+
+    @Override
+    public void onMineRemoveList(List<Mine> removedMines) {
+        super.onMineRemoveList(removedMines);
+        removedMines.forEach(this::removeMineArmorStand);
     }
 
     public static final String MINE_ARMOR_STAND_CUSTOM_NAME = MineCosmeticListener.class.getName();

@@ -46,4 +46,9 @@ public abstract class BaseCommandExecutor implements DatabaseListener, CommandEx
     public void onListenerAdded(List<Mine> mines) {
         minesFromDatabase.addAll(mines);
     }
+
+    @Override
+    public void onMineRemoveList(List<Mine> removedMines) {
+        minesFromDatabase.removeAll(removedMines);
+    }
 }

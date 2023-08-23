@@ -2,6 +2,7 @@ package me.salatosik.hiddenminesplugin.event.listener;
 
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
+import me.salatosik.hiddenminesplugin.core.database.models.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.Location;
@@ -30,11 +31,12 @@ public class MineInteractionMineListener extends BaseMineListener {
             Location possibleMineLocation = moveBlockBottom.getLocation();
             UnknownMine unknownMine = UtilMethods.getUnknownMineByBlock(possibleMineLocation);
 
-            minesFromDatabase.forEach((mineFromDatabase) -> {
+            for(Mine mineFromDatabase: minesFromDatabase) {
                 if(mineFromDatabase.equals(unknownMine)) {
                     detonateMineAndRemoveFromDatabase(possibleMineLocation);
+                    break;
                 }
-            });
+            }
         }
     }
 
@@ -44,11 +46,12 @@ public class MineInteractionMineListener extends BaseMineListener {
             Location possibleHookMineLocation = event.getBlock().getLocation();
             UnknownMine possibleMine = UtilMethods.getUnknownMineByBlock(possibleHookMineLocation);
 
-            minesFromDatabase.forEach((minesFromDatabase) -> {
-                if(minesFromDatabase.equals(possibleMine)) {
+            for(Mine mine: minesFromDatabase) {
+                if(mine.equals(possibleMine)) {
                     detonateMineAndRemoveFromDatabase(possibleHookMineLocation);
+                    return;
                 }
-            });
+            }
         }
     }
 }

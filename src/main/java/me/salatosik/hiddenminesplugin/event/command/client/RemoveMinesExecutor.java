@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class RemoveMinesExecutor extends BaseClientExecutor implements TabCompleter {
@@ -57,8 +58,8 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
         World playerWorld = player.getWorld();
         List<Mine> removeList = new ArrayList<>();
 
-        for(int i = 0; i < minesFromDatabase.size(); i++) {
-            if(i >= max) break;
+        for(int i = 0, count = 0; i < minesFromDatabase.size(); i++) {
+            if(count >= max) break;
             Mine mine = minesFromDatabase.get(i);
 
             if(mine.worldType != playerWorld.getEnvironment()) continue;
@@ -66,16 +67,20 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
             Vector mineVector = new Vector(mine.x, mine.y, mine.z);
             double distance = playerVector.distance(mineVector);
 
-            if(distance <= radius) removeList.add(mine);
+            if(distance <= radius) {
+                removeList.add(mine);
+                count++;
+            }
         }
 
         if(!removeList.isEmpty()) {
             UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
-                for(Mine mine: removeList) {
-                    UtilMethods.removeMineFromDatabase(mine, database, logger, (o) -> {
-                        if(!detonate) return;
+                if(detonate) {
+                    List<Mine> detonateMines = new LinkedList<>();
+                    UtilMethods.removeMinesFromDatabase(removeList, database, logger, detonateMines::add);
 
-                        UtilMethods.createBukkitThreadAndStart(plugin, () -> {
+                    UtilMethods.createBukkitThreadAndStart(plugin, () -> {
+                        detonateMines.forEach((mine) -> {
                             switch(mine.mineType) {
                                 case HOOK:
                                     Location hookMineLocation = mine.toLocation(playerWorld);
@@ -90,11 +95,11 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                                     break;
 
                                 case GROUND:
-                                    Location groundMineLoacation = mine.toLocation(playerWorld);
+                                    Location groundMineLocation = mine.toLocation(playerWorld);
                                     playerWorld.createExplosion(
-                                            groundMineLoacation.getX(),
-                                            groundMineLoacation.getY(),
-                                            groundMineLoacation.getZ(),
+                                            groundMineLocation.getX(),
+                                            groundMineLocation.getY(),
+                                            groundMineLocation.getZ(),
                                             (float) configuration.getMineConfiguration().getGround().getExplosionPower(),
                                             configuration.getMineConfiguration().getGround().getFireBlocks(),
                                             configuration.getMineConfiguration().getGround().getBreakBlocks()
@@ -103,11 +108,13 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                             }
                         });
                     });
-                }
+
+                } else UtilMethods.removeMinesFromDatabase(removeList, database, logger);
 
                 player.sendMessage(ChatColor.GREEN + String.valueOf(removeList.size()) + " mines removed!");
             });
-        }
+
+        } else player.sendMessage(ChatColor.DARK_RED + "Mines not found!");
     }
 
     @Override
