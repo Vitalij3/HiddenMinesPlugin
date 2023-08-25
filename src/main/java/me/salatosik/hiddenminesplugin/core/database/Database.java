@@ -57,12 +57,12 @@ public class Database {
         this.plugin = plugin;
 
 
-        DatabaseCleaner databaseCleaner = new DatabaseCleaner(plugin);
+        DatabaseCleaner databaseCleaner = new DatabaseCleaner();
         databaseCleaner.runTaskTimer(plugin, 20, DatabaseCleaner.UPDATE_RATE);
     }
 
     private void notifyListeners(Consumer<DatabaseListener> consumer) {
-        BukkitRunnableWrapper bukkitRunnable = new BukkitRunnableWrapper(() -> databaseListeners.forEach((listener) -> consumer.accept(listener)));
+        BukkitRunnableWrapper bukkitRunnable = new BukkitRunnableWrapper(() -> databaseListeners.forEach(consumer));
         bukkitRunnable.runTask(plugin);
     }
 
@@ -194,14 +194,12 @@ public class Database {
     }
 
     private class DatabaseCleaner extends BukkitRunnable {
-        private final JavaPlugin plugin;
         private final Logger logger;
 
         public static final String LOG_PREFIX = "- [Database Cleaner]: ";
         public static final long UPDATE_RATE = 20L;
 
-        public DatabaseCleaner(JavaPlugin plugin) {
-            this.plugin = plugin;
+        public DatabaseCleaner() {
             logger = plugin.getLogger();
             databaseLog("Database cleaner initialized!", Level.INFO);
         }
@@ -219,22 +217,31 @@ public class Database {
                 return;
             }
 
+            final List<Mine> clearMines = new LinkedList<>();
+
             for(World world: plugin.getServer().getWorlds()) {
                 for(Mine mine: mines) {
                     if(mine.worldType != world.getEnvironment()) continue;
 
                     Block block = world.getBlockAt((int) mine.x, (int) mine.y, (int) mine.z);
-                    if(block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR || block.getType() == Material.VOID_AIR) {
-                        Thread thread = new Thread(() -> {
-                            try { removeMine(mine); }
-                            catch(SQLException sqlException) {
-                                databaseLog("Failed to remove excess block!", Level.WARNING);
-                            }
-                        });
+                    if(block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR ||
+                            block.getType() == Material.VOID_AIR) {
 
-                        thread.start();
+                        clearMines.add(mine);
                     }
                 }
+            }
+
+            if(!clearMines.isEmpty()) {
+                BukkitRunnableWrapper bukkitRunnableWrapper = new BukkitRunnableWrapper(() -> {
+                    try { removeMines(clearMines); }
+                    catch(SQLException sqlException) {
+                        sqlException.printStackTrace();
+                        databaseLog("Failed to remove the mines list!", Level.WARNING);
+                    }
+                });
+
+                bukkitRunnableWrapper.runTaskAsynchronously(plugin);
             }
         }
     }

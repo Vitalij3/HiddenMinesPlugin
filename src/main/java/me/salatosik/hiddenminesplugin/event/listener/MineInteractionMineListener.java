@@ -1,5 +1,6 @@
 package me.salatosik.hiddenminesplugin.event.listener;
 
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
