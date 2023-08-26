@@ -3,7 +3,7 @@ package me.salatosik.hiddenminesplugin.event.command.client;
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.MineType;
+import me.salatosik.hiddenminesplugin.core.MineType;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

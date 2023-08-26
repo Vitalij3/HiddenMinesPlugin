@@ -3,20 +3,36 @@ package me.salatosik.hiddenminesplugin.core.database.models;
 import com.google.common.base.Objects;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.function.Function;
+import java.util.List;
 
 public class UnknownMine {
-    public final float x;
-    public final float y;
-    public final float z;
+    public final int x;
+    public final int y;
+    public final int z;
     public final World.Environment worldType;
 
-    public UnknownMine(float x, float y, float z, World.Environment worldType) {
+    public UnknownMine(int x, int y, int z, World.Environment worldType) {
         this.x = x;
         this.y = y;
         this.z = z;
         this.worldType = worldType;
+    }
+
+    public UnknownMine(Block block) {
+        x = block.getX();
+        y = block.getY();
+        z = block.getZ();
+        worldType = block.getWorld().getEnvironment();
+    }
+
+    public UnknownMine(Location location) {
+        x = location.getBlockX();
+        y = location.getBlockY();
+        z = location.getBlockZ();
+        worldType = location.getWorld().getEnvironment();
     }
 
     @Override
@@ -32,8 +48,15 @@ public class UnknownMine {
         return Objects.hashCode(x, y, z);
     }
 
-    public Location toLocation(Function<World.Environment, World> function) {
-        return new Location(function.apply(worldType), x, y, z);
+    public Location toLocation(JavaPlugin plugin) {
+        List<World> worlds = plugin.getServer().getWorlds();
+        for(World world: worlds) {
+            if(world.getEnvironment() == worldType) {
+                return new Location(world, x, y, z);
+            }
+        }
+
+        return null;
     }
 
     public Location toLocation(World world) {

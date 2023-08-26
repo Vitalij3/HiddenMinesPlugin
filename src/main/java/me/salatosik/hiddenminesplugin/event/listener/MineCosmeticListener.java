@@ -2,7 +2,7 @@ package me.salatosik.hiddenminesplugin.event.listener;
 
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.MineType;
+import me.salatosik.hiddenminesplugin.core.MineType;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.Ground;
 import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.Hook;

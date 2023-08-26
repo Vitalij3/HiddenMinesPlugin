@@ -5,7 +5,7 @@ import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.MineType;
+import me.salatosik.hiddenminesplugin.core.MineType;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.*;
@@ -86,7 +86,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
             switch(setupMineState) {
                 case SUCCESS:
                     UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
-                        Mine groundMine = UtilMethods.getMineByBlock(clickedBlock.getLocation(), selectedMineType);
+                        Mine groundMine = new Mine(new UnknownMine(clickedBlock), selectedMineType);
                         UtilMethods.addMineToDatabase(groundMine, database, logger, (v) -> UtilMethods.createBukkitThreadAndStart(plugin, () -> {
                             event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Mine placed!");
                             if(event.getPlayer().getGameMode() != GameMode.CREATIVE)
@@ -118,7 +118,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
     public void onPlayerBreakBlock(BlockBreakEvent event) {
         if(!itIsPossibleMine(event.getBlock())) return;
 
-        UnknownMine unknownMine = UtilMethods.getUnknownMineByBlock(event.getBlock());
+        UnknownMine unknownMine = new UnknownMine(event.getBlock());
         Mine mine = UtilMethods.findMineByUnknownMine(minesFromDatabase, unknownMine);
         if(mine == null) return;
 

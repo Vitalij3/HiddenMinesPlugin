@@ -1,12 +1,12 @@
 package me.salatosik.hiddenminesplugin.core.database.models;
 
-import org.bukkit.Location;
+import me.salatosik.hiddenminesplugin.core.MineType;
 import org.bukkit.World;
 
 public class Mine extends UnknownMine {
     public final MineType mineType;
 
-    public Mine(float x, float y, float z, MineType mineType, World.Environment worldType) {
+    public Mine(int x, int y, int z, MineType mineType, World.Environment worldType) {
         super(x, y, z, worldType);
         this.mineType = mineType;
     }

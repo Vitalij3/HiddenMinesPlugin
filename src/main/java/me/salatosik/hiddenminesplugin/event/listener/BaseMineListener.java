@@ -8,7 +8,6 @@ import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
@@ -108,16 +107,19 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
     }
 
     protected boolean itIsMine(Block block) {
-        UnknownMine unknownMine = UtilMethods.getUnknownMineByBlock(block);
+        UnknownMine unknownMine = new UnknownMine(block);
         return itIsMine(unknownMine);
     }
 
-    protected void detonateMine(Mine mine, World world) {
-        Location location = new Location(world, mine.x, mine.y, mine.z);
+    protected void detonateMine(Mine mine) {
+        Location mineLocation = mine.toLocation(plugin);
+        if(mineLocation == null) return;
+
         switch(mine.mineType) {
             case GROUND:
-                world.createExplosion(
-                        location,
+                mineLocation.setY(mineLocation.getBlockY() + 1);
+                mineLocation.getWorld().createExplosion(
+                        mineLocation,
                         (float) configuration.getMineConfiguration().getGround().getExplosionPower(),
                         configuration.getMineConfiguration().getGround().getFireBlocks(),
                         configuration.getMineConfiguration().getGround().getBreakBlocks()
@@ -125,18 +127,14 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
                 break;
 
             case HOOK:
-                world.createExplosion(
-                        location,
+                mineLocation.getWorld().createExplosion(
+                        mineLocation,
                         (float) configuration.getMineConfiguration().getHook().getExplosionPower(),
                         configuration.getMineConfiguration().getHook().getFireBlocks(),
                         configuration.getMineConfiguration().getHook().getBreakBlocks()
                 );
                 break;
         }
-    }
-
-    protected void detonateMineAndRemoveFromDatabase(Location blockLocation) {
-        detonateMineAndRemoveFromDatabase(blockLocation, false);
     }
 
     protected void detonateMineAndRemoveFromDatabase(Location blockLocation, boolean withoutDetonation) {
@@ -146,8 +144,12 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
         UtilMethods.createBukkitAsyncThreadAndStart(plugin,
                 () -> UtilMethods.removeMineFromDatabase(mine, database, logger,
                         (v) -> UtilMethods.createBukkitThreadAndStart(plugin, () -> {
-                            if(!withoutDetonation) detonateMine(mine, blockLocation.getWorld());
+                            if(!withoutDetonation) detonateMine(mine);
         })));
+    }
+
+    protected void detonateMineAndRemoveFromDatabase(Location blockLocation) {
+        detonateMineAndRemoveFromDatabase(blockLocation, false);
     }
 
     protected void removeItemFromInventory(ItemStack itemStack, int amount, Inventory inventory) {

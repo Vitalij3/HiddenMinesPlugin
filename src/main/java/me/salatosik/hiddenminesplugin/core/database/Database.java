@@ -10,9 +10,9 @@ import java.util.logging.Logger;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import me.salatosik.hiddenminesplugin.core.MineType;
 import me.salatosik.hiddenminesplugin.core.database.interfaces.DatabaseListener;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.MineType;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.BukkitRunnableWrapper;
 import org.bukkit.Material;
@@ -42,9 +42,9 @@ public class Database {
         try(Connection conn = dataSource.getConnection()) {
             try(Statement statement = conn.createStatement()) {
                 String sql = "create table if not exists mines " +
-                        "(x float not null, " +
-                        "y float not null, " +
-                        "z float not null, " +
+                        "(x int not null, " +
+                        "y int not null, " +
+                        "z int not null, " +
                         "mineType text not null," +
                         "worldType text not null)";
 
@@ -58,7 +58,7 @@ public class Database {
 
 
         DatabaseCleaner databaseCleaner = new DatabaseCleaner();
-        databaseCleaner.runTaskTimer(plugin, 20, DatabaseCleaner.UPDATE_RATE);
+        databaseCleaner.runTaskTimerAsynchronously(plugin, 20, DatabaseCleaner.UPDATE_RATE);
     }
 
     private void notifyListeners(Consumer<DatabaseListener> consumer) {
@@ -71,9 +71,9 @@ public class Database {
 
         try(Connection connection = dataSource.getConnection()) {
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setFloat(1, mine.x);
-                preparedStatement.setFloat(2, mine.y);
-                preparedStatement.setFloat(3, mine.z);
+                preparedStatement.setInt(1, mine.x);
+                preparedStatement.setInt(2, mine.y);
+                preparedStatement.setInt(3, mine.z);
                 preparedStatement.setString(4, mine.mineType.name());
                 preparedStatement.setString(5, mine.worldType.name());
                 preparedStatement.execute();
@@ -90,9 +90,9 @@ public class Database {
 
         try(Connection connection = dataSource.getConnection()) {
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setFloat(1, mine.x);
-                preparedStatement.setFloat(2, mine.y);
-                preparedStatement.setFloat(3, mine.z);
+                preparedStatement.setInt(1, mine.x);
+                preparedStatement.setInt(2, mine.y);
+                preparedStatement.setInt(3, mine.z);
                 preparedStatement.setString(4, mine.mineType.name());
                 preparedStatement.setString(5, mine.worldType.name());
                 preparedStatement.execute();
@@ -111,9 +111,9 @@ public class Database {
         try(Connection connection = dataSource.getConnection()) {
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 for(Mine mine: mines) {
-                    preparedStatement.setFloat(1, mine.x);
-                    preparedStatement.setFloat(2, mine.y);
-                    preparedStatement.setFloat(3, mine.z);
+                    preparedStatement.setInt(1, mine.x);
+                    preparedStatement.setInt(2, mine.y);
+                    preparedStatement.setInt(3, mine.z);
                     preparedStatement.setString(4, mine.mineType.name());
                     preparedStatement.setString(5, mine.worldType.name());
                     preparedStatement.execute();
@@ -137,16 +137,16 @@ public class Database {
 
         try(Connection connection = dataSource.getConnection()) {
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setFloat(1, unknownMine.x);
-                preparedStatement.setFloat(2, unknownMine.y);
-                preparedStatement.setFloat(3, unknownMine.z);
+                preparedStatement.setInt(1, unknownMine.x);
+                preparedStatement.setInt(2, unknownMine.y);
+                preparedStatement.setInt(3, unknownMine.z);
                 preparedStatement.setString(4, unknownMine.worldType.name());
 
                 try(ResultSet resultSet = preparedStatement.executeQuery()) {
                     if(resultSet.next()) {
-                        float x = resultSet.getFloat("x");
-                        float y = resultSet.getFloat("y");
-                        float z = resultSet.getFloat("z");
+                        int x = resultSet.getInt("x");
+                        int y = resultSet.getInt("y");
+                        int z = resultSet.getInt("z");
                         MineType mineType = MineType.valueOf(resultSet.getString("mineType"));
                         World.Environment worldType = World.Environment.valueOf(resultSet.getString("worldType"));
 
@@ -170,9 +170,9 @@ public class Database {
 
                     while(rs.next()) {
                         Mine mine = new Mine(
-                                rs.getFloat("x"),
-                                rs.getFloat("y"),
-                                rs.getFloat("z"),
+                                rs.getInt("x"),
+                                rs.getInt("y"),
+                                rs.getInt("z"),
                                 MineType.valueOf(rs.getString("mineType")),
                                 World.Environment.valueOf(rs.getString("worldType"))
                         );
@@ -223,7 +223,7 @@ public class Database {
                 for(Mine mine: mines) {
                     if(mine.worldType != world.getEnvironment()) continue;
 
-                    Block block = world.getBlockAt((int) mine.x, (int) mine.y, (int) mine.z);
+                    Block block = world.getBlockAt((int) mine.x, mine.y, mine.z);
                     if(block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR ||
                             block.getType() == Material.VOID_AIR) {
 

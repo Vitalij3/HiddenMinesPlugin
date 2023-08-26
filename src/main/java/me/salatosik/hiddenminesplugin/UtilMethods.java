@@ -2,11 +2,9 @@ package me.salatosik.hiddenminesplugin;
 
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.MineType;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.BukkitRunnableWrapper;
 import org.bukkit.Location;
-import org.bukkit.block.Block;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +25,7 @@ public class UtilMethods {
     }
 
     public static Mine findMineByLocation(@NotNull Collection<Mine> mines, @NotNull Location location) {
-        UnknownMine unknownMine = getUnknownMineByBlock(location);
+        UnknownMine unknownMine = new UnknownMine(location);
         return findMineByUnknownMine(mines, unknownMine);
     }
 
@@ -82,44 +80,6 @@ public class UtilMethods {
 
     public static void removeMinesFromDatabase(List<Mine> mines, Database database, Logger logger) {
         removeMinesFromDatabase(mines, database, logger, null);
-    }
-
-    public static UnknownMine getUnknownMineByBlock(Block block) {
-        return new UnknownMine(
-                block.getX(),
-                block.getY(),
-                block.getZ(),
-                block.getWorld().getEnvironment()
-        );
-    }
-
-    public static UnknownMine getUnknownMineByBlock(Location blockLocation) {
-        return new UnknownMine(
-                (float) blockLocation.getX(),
-                (float) blockLocation.getY(),
-                (float) blockLocation.getZ(),
-                blockLocation.getWorld().getEnvironment()
-        );
-    }
-
-    public static Mine getMineByBlock(Block block, MineType mineType) {
-        return new Mine(
-                block.getX(),
-                block.getY(),
-                block.getZ(),
-                mineType,
-                block.getWorld().getEnvironment()
-        );
-    }
-
-    public static Mine getMineByBlock(Location blockLocation, MineType mineType) {
-        return new Mine(
-                (float) blockLocation.getBlockX(),
-                (float) blockLocation.getBlockY(),
-                (float) blockLocation.getBlockZ(),
-                mineType,
-                blockLocation.getWorld().getEnvironment()
-        );
     }
 
     public static void createBukkitThreadAndStart(JavaPlugin javaPlugin, Runnable runnable) {
