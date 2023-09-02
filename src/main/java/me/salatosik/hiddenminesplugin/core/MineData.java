@@ -16,6 +16,7 @@ public enum MineData {
             "this-is-hook-mine",
             new String[]{ "X", "Y" },
             ChatColor.DARK_RED + "Hook mine",
+            "hook",
             new Ingredient[]{ new Ingredient('Y', Material.STONE_BUTTON), new Ingredient('X', Material.TNT) }
     ),
 
@@ -23,7 +24,8 @@ public enum MineData {
             "ground-mine",
             "this-is-ground-mine",
             new String[]{ "Y", "X" },
-            ChatColor.DARK_RED + " Ground mine",
+            ChatColor.DARK_RED + "Ground mine",
+            "ground",
             new Ingredient[]{ new Ingredient('Y', Material.STONE_PRESSURE_PLATE), new Ingredient('X', Material.TNT) }
     );
 
@@ -34,12 +36,14 @@ public enum MineData {
     public final String persistentData;
     public final String localizedName;
     public final Ingredient[] ingredients;
+    public final String mineName;
 
-    MineData(String nameSpacedKey, String persistentData, String[] recipe, String localizedName, Ingredient[] ingredients) {
+    MineData(String nameSpacedKey, String persistentData, String[] recipe, String localizedName, String mineName, Ingredient[] ingredients) {
         this.nameSpacedKey = nameSpacedKey;
         this.recipe = recipe;
         this.persistentData = persistentData;
         this.localizedName = localizedName;
+        this.mineName = mineName;
         this.ingredients = ingredients;
     }
 
@@ -71,5 +75,15 @@ public enum MineData {
             this.key = key;
             this.item = item;
         }
+    }
+
+    public static MineData valueOfMineName(String mineName) {
+        for(MineData md: MineData.values()) {
+            if(md.mineName.equals(mineName)) {
+                return md;
+            }
+        }
+
+        return null;
     }
 }

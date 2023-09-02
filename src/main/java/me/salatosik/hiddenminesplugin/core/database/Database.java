@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import me.salatosik.hiddenminesplugin.core.MineType;
+import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.interfaces.DatabaseListener;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
@@ -147,7 +147,7 @@ public class Database {
                         int x = resultSet.getInt("x");
                         int y = resultSet.getInt("y");
                         int z = resultSet.getInt("z");
-                        MineType mineType = MineType.valueOf(resultSet.getString("mineType"));
+                        MineData mineType = MineData.valueOf(resultSet.getString("mineType"));
                         World.Environment worldType = World.Environment.valueOf(resultSet.getString("worldType"));
 
                         return new Mine(x, y, z, mineType, worldType);
@@ -173,7 +173,7 @@ public class Database {
                                 rs.getInt("x"),
                                 rs.getInt("y"),
                                 rs.getInt("z"),
-                                MineType.valueOf(rs.getString("mineType")),
+                                MineData.valueOf(rs.getString("mineType")),
                                 World.Environment.valueOf(rs.getString("worldType"))
                         );
 
@@ -223,7 +223,7 @@ public class Database {
                 for(Mine mine: mines) {
                     if(mine.worldType != world.getEnvironment()) continue;
 
-                    Block block = world.getBlockAt((int) mine.x, mine.y, mine.z);
+                    Block block = world.getBlockAt(mine.x, mine.y, mine.z);
                     if(block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR ||
                             block.getType() == Material.VOID_AIR) {
 

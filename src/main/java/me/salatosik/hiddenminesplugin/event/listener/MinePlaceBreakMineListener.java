@@ -5,7 +5,6 @@ import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.MineType;
 import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.*;
@@ -31,7 +30,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
         IS_NOT_GROUND_MINE, IS_NOT_HOOK_MINE, IT_IS_ALREADY_MINE, SUCCESS, CLICKED_BLOCK_IS_NULL, NULL
     }
 
-    private SetupMineState setupMine(PlayerInteractEvent event, MineType mineType) {
+    private SetupMineState setupMine(PlayerInteractEvent event, MineData mineType) {
         Block clickedBlock = event.getClickedBlock();
         if(clickedBlock == null) return SetupMineState.CLICKED_BLOCK_IS_NULL;
 
@@ -70,15 +69,15 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
         String clickedItemPersistentDataGround = clickedItemMetaPersistentData.get(groundMineNamespacedKey, PersistentDataType.STRING);
 
         SetupMineState setupMineState = SetupMineState.NULL;
-        MineType selectedMineType;
+        MineData selectedMineType;
 
         if(clickedItemPersistentDataGround != null) {
-            setupMineState = setupMine(event, MineType.GROUND);
-            selectedMineType = MineType.GROUND;
+            setupMineState = setupMine(event, MineData.GROUND);
+            selectedMineType = MineData.GROUND;
         } else if(clickedItemPersistentDataHook != null) {
-            setupMineState = setupMine(event, MineType.HOOK);
-            selectedMineType = MineType.HOOK;
-        } else selectedMineType = MineType.EMPTY;
+            setupMineState = setupMine(event, MineData.HOOK);
+            selectedMineType = MineData.HOOK;
+        } else selectedMineType = null;
 
         boolean allPersistentDataNull = clickedItemPersistentDataGround == null & clickedItemPersistentDataHook == null;
 

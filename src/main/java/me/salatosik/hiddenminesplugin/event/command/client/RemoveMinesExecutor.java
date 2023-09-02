@@ -1,9 +1,9 @@
 package me.salatosik.hiddenminesplugin.event.command.client;
 
 import me.salatosik.hiddenminesplugin.UtilMethods;
+import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.MineType;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -31,7 +31,7 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
         if(args.length != 2 && args.length != 4 && args.length != 3) return;
         int radius, max;
         boolean detonate;
-        MineType type;
+        MineData type;
 
         try {
             if(!args[0].equalsIgnoreCase("true") && !args[0].equalsIgnoreCase("false")) throw new Exception();
@@ -39,8 +39,8 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
 
             radius = Integer.parseInt(args[1]);
 
-            try { type = MineType.valueOf(args[2].toUpperCase()); }
-            catch(ArrayIndexOutOfBoundsException ex) { type = MineType.EMPTY; }
+            try { type = MineData.valueOf(args[2].toUpperCase()); }
+            catch(ArrayIndexOutOfBoundsException ex) { type = null; }
 
             try { max = Integer.parseInt(args[3]); }
             catch(ArrayIndexOutOfBoundsException ex) { max = Integer.MAX_VALUE; }
@@ -69,7 +69,7 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
             Mine mine = minesFromDatabase.get(i);
 
             if(mine.worldType != playerWorld.getEnvironment()) continue;
-            if(type != MineType.EMPTY) if(mine.mineType != type) continue;
+            if(type != null) if(mine.mineType != type) continue;
 
             Vector mineVector = new Vector(mine.x, mine.y, mine.z);
             double distance = playerVector.distance(mineVector);
@@ -141,23 +141,23 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                 break;
 
             case 3:
-                for(MineType mineType: MineType.values()) list.add(mineType.name().toLowerCase());
+                for(MineData mineType: MineData.values()) list.add(mineType.name().toLowerCase());
                 break;
 
             case 4:
                 int radius;
-                MineType type;
+                MineData type;
 
                 try { radius = Integer.parseInt(args[1]); }
                 catch(NumberFormatException | IndexOutOfBoundsException exception) { return list; }
 
                 try {
                     String mineNameFromArgs = args[2].toUpperCase();
-                    type = MineType.valueOf(mineNameFromArgs);
+                    type = MineData.valueOf(mineNameFromArgs);
                 } catch(IndexOutOfBoundsException indexOutOfBoundsException) {
                     return list;
                 } catch(IllegalArgumentException illegalArgumentException) {
-                    type = MineType.EMPTY;
+                    type = null;
                 }
 
                 Vector playerVector = player.getLocation().toVector();
@@ -166,7 +166,7 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
 
                 for(Mine mine: minesFromDatabase) {
                     if(mine.worldType != playerWorld.getEnvironment()) continue;
-                    if(type != MineType.EMPTY) if(type != mine.mineType) continue;
+                    if(type != null) if(type != mine.mineType) continue;
                     Vector mineVector = new Vector(mine.x, mine.y, mine.z);
                     double distance = playerVector.distance(mineVector);
                     if (distance <= radius) count++;

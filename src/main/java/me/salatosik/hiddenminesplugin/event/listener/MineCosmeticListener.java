@@ -1,8 +1,8 @@
 package me.salatosik.hiddenminesplugin.event.listener;
 
+import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.MineType;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.Ground;
 import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.Hook;
@@ -50,7 +50,7 @@ public class MineCosmeticListener extends BaseMineListener {
 
     public static final String MINE_ARMOR_STAND_CUSTOM_NAME = MineCosmeticListener.class.getName();
 
-    private void formatMineArmorStandLocation(Location location, MineType mineType) {
+    private void formatMineArmorStandLocation(Location location, MineData mineType) {
         switch(mineType) {
             case HOOK:
                 location.setX(location.getX() + 0.50d);
