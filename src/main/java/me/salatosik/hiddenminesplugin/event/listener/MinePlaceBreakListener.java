@@ -1,6 +1,5 @@
 package me.salatosik.hiddenminesplugin.event.listener;
 
-import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.UtilMethods;
@@ -19,15 +18,13 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
-
-public class MinePlaceBreakMineListener extends BaseMineListener {
-    public MinePlaceBreakMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
+public class MinePlaceBreakListener extends BaseListener {
+    public MinePlaceBreakListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
     }
 
     private enum SetupMineState {
-        IS_NOT_GROUND_MINE, IS_NOT_HOOK_MINE, IT_IS_ALREADY_MINE, SUCCESS, CLICKED_BLOCK_IS_NULL, NULL
+        IS_NOT_GROUND_MINE, IS_NOT_HOOK_MINE, IT_IS_ALREADY_MINE, SUCCESS, CLICKED_BLOCK_IS_NULL, NULL, NOT_ALLOWED
     }
 
     private SetupMineState setupMine(PlayerInteractEvent event, MineData mineType) {
@@ -36,10 +33,12 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
 
         switch(mineType) {
             case GROUND:
+                if(!configuration.getMineConfiguration().getGround().getAllow()) return SetupMineState.NOT_ALLOWED;
                 if(!itIsPossibleGroundMine(clickedBlock)) return SetupMineState.IS_NOT_GROUND_MINE;
                 break;
 
             case HOOK:
+                if(!configuration.getMineConfiguration().getHook().getAllow()) return SetupMineState.NOT_ALLOWED;
                 if(!itIsPossibleHookMine(clickedBlock)) return SetupMineState.IS_NOT_HOOK_MINE;
                 break;
         }
@@ -50,7 +49,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerRightClick(PlayerInteractEvent event) {
+    public void onMineRightClick(PlayerInteractEvent event) {
         if(event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         ItemStack clickedItem = event.getItem();
@@ -62,8 +61,8 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
         ItemMeta clickedItemMeta = clickedItem.getItemMeta();
         PersistentDataContainer clickedItemMetaPersistentData = clickedItemMeta.getPersistentDataContainer();
 
-        NamespacedKey hookMineNamespacedKey = new NamespacedKey(plugin, MineData.HOOK.nameSpacedKey);
-        NamespacedKey groundMineNamespacedKey = new NamespacedKey(plugin, MineData.GROUND.nameSpacedKey);
+        NamespacedKey hookMineNamespacedKey = new NamespacedKey(plugin, MineData.HOOK.getNamespacedKeyString());
+        NamespacedKey groundMineNamespacedKey = new NamespacedKey(plugin, MineData.GROUND.getNamespacedKeyString());
 
         String clickedItemPersistentDataHook = clickedItemMetaPersistentData.get(hookMineNamespacedKey, PersistentDataType.STRING);
         String clickedItemPersistentDataGround = clickedItemMetaPersistentData.get(groundMineNamespacedKey, PersistentDataType.STRING);
@@ -106,7 +105,12 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
                     break;
 
                 case IT_IS_ALREADY_MINE:
-                    event.getPlayer().sendMessage(ChatColor.DARK_RED + "This is already {mine_name} mine!".replace("{mine_name}", selectedMineType.mineName));
+                    event.getPlayer().sendMessage(ChatColor.DARK_RED + "This is already {mine_name} mine!".replace("{mine_name}", selectedMineType.getDisplayName()));
+                    event.setCancelled(true);
+                    break;
+
+                case NOT_ALLOWED:
+                    event.getPlayer().sendMessage(ChatColor.DARK_RED + "You can`t place this mine because this mine type is not allowed.");
                     event.setCancelled(true);
                     break;
             }
@@ -114,7 +118,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerBreakBlock(BlockBreakEvent event) {
+    public void onMineBreak(BlockBreakEvent event) {
         if(!itIsPossibleMine(event.getBlock())) return;
 
         UnknownMine unknownMine = new UnknownMine(event.getBlock());
@@ -146,79 +150,6 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
                     }));
                 } else detonateMineAndRemoveFromDatabase(breakedBlockLocation);
                 break;
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onBlockDestroy(BlockDestroyEvent event) {
-        if(itIsPossibleMine(event.getBlock())) {
-            detonateMineAndRemoveFromDatabase(event.getBlock().getLocation(), false);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBlockDamage(BlockDamageEvent event) {
-        if(itIsPossibleMine(event.getBlock())) {
-            if(!SHOVELS.contains(event.getItemInHand().getType())) {
-                detonateMineAndRemoveFromDatabase(event.getBlock().getLocation());
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onBlockFertilize(BlockFertilizeEvent event) {
-        if(itIsPossibleMine(event.getBlock())) {
-            detonateMineAndRemoveFromDatabase(event.getBlock().getLocation());
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onBlockIgnite(BlockIgniteEvent event) {
-        if(itIsPossibleMine(event.getBlock())) {
-            detonateMineAndRemoveFromDatabase(event.getBlock().getLocation());
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onBlockIgniteByPlayer(BlockPlaceEvent event) {
-        if(event.getBlockPlaced().getType() == Material.FIRE) {
-            Location placedBlockLocation = event.getBlockPlaced().getLocation();
-            placedBlockLocation.setY(placedBlockLocation.getY() - 1);
-            Block bottomPlacedBlock = placedBlockLocation.getBlock();
-
-            if(itIsPossibleMine(bottomPlacedBlock)) detonateMineAndRemoveFromDatabase(bottomPlacedBlock.getLocation());
-        }
-    }
-
-    private void detonateMineOnPistonEvent(BlockPistonEvent event) {
-        List<Block> pistonBlocks = null;
-
-        if(event instanceof BlockPistonExtendEvent) {
-            BlockPistonExtendEvent extendEvent = (BlockPistonExtendEvent) event;
-            pistonBlocks = extendEvent.getBlocks();
-
-        } else if(event instanceof BlockPistonRetractEvent) {
-            BlockPistonRetractEvent retractEvent = (BlockPistonRetractEvent) event;
-            pistonBlocks = retractEvent.getBlocks();
-        }
-
-        if(pistonBlocks != null) for(Block block: pistonBlocks) if(itIsMine(block)) detonateMineAndRemoveFromDatabase(block.getLocation());
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBlockPistonIn(BlockPistonExtendEvent event) {
-        detonateMineOnPistonEvent(event);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBlockPistonOut(BlockPistonRetractEvent event) {
-        detonateMineOnPistonEvent(event);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBlockPhysics(BlockPhysicsEvent event) {
-        if(ALLOWED_GROUND_MINE_GROUNDS.contains(event.getBlock().getType())) {
-            detonateMineAndRemoveFromDatabase(event.getBlock().getLocation());
         }
     }
 }

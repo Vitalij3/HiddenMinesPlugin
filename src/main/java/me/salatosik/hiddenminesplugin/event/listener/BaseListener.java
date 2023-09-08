@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Logger;
 
-public abstract class BaseMineListener implements DatabaseListener, Listener {
+public abstract class BaseListener implements DatabaseListener, Listener {
     protected final JavaPlugin plugin;
     protected final Database database;
     protected final Logger logger;
@@ -48,7 +48,7 @@ public abstract class BaseMineListener implements DatabaseListener, Listener {
             Material.NETHERITE_SHOVEL
     );
 
-    protected BaseMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
+    protected BaseListener(JavaPlugin plugin, Database database, Configuration configuration) {
         this.plugin = plugin;
         this.database = database;
         this.configuration = configuration;

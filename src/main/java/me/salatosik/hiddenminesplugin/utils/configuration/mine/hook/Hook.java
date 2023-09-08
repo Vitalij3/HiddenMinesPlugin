@@ -5,12 +5,14 @@ public class Hook {
     private final boolean cosmetic;
     private final boolean breakBlocks;
     private final boolean fireBlocks;
+    private final boolean allow;
 
-    public Hook(double explosionPower, boolean cosmetic, boolean breakBlocks, boolean fireBlocks) {
+    public Hook(double explosionPower, boolean cosmetic, boolean breakBlocks, boolean fireBlocks, boolean allow) {
         this.explosionPower = explosionPower;
         this.cosmetic = cosmetic;
         this.breakBlocks = breakBlocks;
         this.fireBlocks = fireBlocks;
+        this.allow = allow;
     }
 
     public double getExplosionPower() {
@@ -27,5 +29,9 @@ public class Hook {
 
     public boolean getFireBlocks() {
         return fireBlocks;
+    }
+
+    public boolean getAllow() {
+        return allow;
     }
 }

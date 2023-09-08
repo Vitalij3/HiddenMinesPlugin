@@ -1,11 +1,11 @@
 package me.salatosik.hiddenminesplugin;
 
+import me.salatosik.hiddenminesplugin.core.BaseData;
+import me.salatosik.hiddenminesplugin.core.Ingredient;
 import me.salatosik.hiddenminesplugin.core.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.event.command.client.RemoveMinesExecutor;
-import me.salatosik.hiddenminesplugin.event.listener.MineCosmeticListener;
-import me.salatosik.hiddenminesplugin.event.listener.MineInteractionMineListener;
-import me.salatosik.hiddenminesplugin.event.listener.MinePlaceBreakMineListener;
+import me.salatosik.hiddenminesplugin.event.listener.*;
 import me.salatosik.hiddenminesplugin.utils.CommonFunctionThrowsException;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import me.salatosik.hiddenminesplugin.utils.configuration.database.DatabaseConfiguration;
@@ -55,9 +55,10 @@ public final class HiddenMinesPlugin extends JavaPlugin {
         initRecipes();
 
         PluginManager pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(new MinePlaceBreakMineListener(this, database, configuration), this);
-        pluginManager.registerEvents(new MineInteractionMineListener(this, database, configuration), this);
-        pluginManager.registerEvents(new MineCosmeticListener(this, database, configuration), this);
+        pluginManager.registerEvents(new MinePlaceBreakListener(this, database, configuration), this);
+        pluginManager.registerEvents(new InteractListener(this, database, configuration), this);
+        pluginManager.registerEvents(new CosmeticListener(this, database, configuration), this);
+        pluginManager.registerEvents(new CraftListener(this, database, configuration), this);
 
         RemoveMinesExecutor removeMinesExecutor = new RemoveMinesExecutor(this, database, configuration);
         initCommandExecutor("remove", removeMinesExecutor, removeMinesExecutor);
@@ -81,13 +82,12 @@ public final class HiddenMinesPlugin extends JavaPlugin {
     }
 
     private void initRecipes() {
-        for(MineData mineData : MineData.values()) {
-            if(mineData.nameSpacedKey == null) continue;
-            NamespacedKey namespacedKey = new NamespacedKey(this, mineData.nameSpacedKey);
-            ItemStack itemStack = mineData.toItemStack(namespacedKey);
+        for(BaseData data: MineData.values()) {
+            NamespacedKey namespacedKey = new NamespacedKey(this, data.getNamespacedKeyString());
+            ItemStack itemStack = data.toItemStack(this);
             ShapedRecipe shapedRecipe = new ShapedRecipe(namespacedKey, itemStack);
-            shapedRecipe.shape(mineData.recipe);
-            for(MineData.Ingredient ingredient: mineData.ingredients) shapedRecipe.setIngredient(ingredient.key, ingredient.item);
+            shapedRecipe.shape(data.getRecipe());
+            for(Ingredient ingredient: data.getIngredients()) shapedRecipe.setIngredient(ingredient.key, ingredient.item);
             Bukkit.addRecipe(shapedRecipe);
         }
     }
@@ -104,18 +104,20 @@ public final class HiddenMinesPlugin extends JavaPlugin {
         double groundMineExplosionPower = fc.getDouble("mine.ground.explosionPower");
         boolean groundMineCosmetic = fc.getBoolean("mine.ground.cosmetic");
         boolean groundMineAdaptiveCosmetic = fc.getBoolean("mine.ground.adaptiveCosmetic");
-        boolean goundBreakBlocks = fc.getBoolean("mine.ground.breakBlocks");
+        boolean groundBreakBlocks = fc.getBoolean("mine.ground.breakBlocks");
         boolean groundFireBlocks = fc.getBoolean("mine.ground.fireBlocks");
+        boolean groundAllow = fc.getBoolean("mine.ground.allow");
 
         // primitive attrs for mine.hook
         double hookMineExplosionPower = fc.getDouble("mine.hook.explosionPower");
         boolean hookMineCosmetic = fc.getBoolean("mine.hook.cosmetic");
         boolean hookMineBreakBlocks = fc.getBoolean("mine.hook.breakBlocks");
         boolean hookMineFireBlocks = fc.getBoolean("mine.hook.fireBlocks");
+        boolean hookAllow = fc.getBoolean("mine.hook.allow");
 
         // mines configuration
-        Ground groundMineConfiguration = new Ground(groundMineExplosionPower, groundMineCosmetic, groundMineAdaptiveCosmetic, goundBreakBlocks, groundFireBlocks);
-        Hook hookMineConfiguration = new Hook(hookMineExplosionPower, hookMineCosmetic, hookMineBreakBlocks, hookMineFireBlocks);
+        Ground groundMineConfiguration = new Ground(groundMineExplosionPower, groundMineCosmetic, groundMineAdaptiveCosmetic, groundBreakBlocks, groundFireBlocks, groundAllow);
+        Hook hookMineConfiguration = new Hook(hookMineExplosionPower, hookMineCosmetic, hookMineBreakBlocks, hookMineFireBlocks, hookAllow);
 
         // all mines configuration
         MineConfiguration mineConfiguration = new MineConfiguration(groundMineConfiguration, hookMineConfiguration);

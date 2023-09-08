@@ -19,8 +19,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.List;
 
 // TODO реалізувати адаптацію наземної міни під якийсь тип
-public class MineCosmeticListener extends BaseMineListener {
-    public MineCosmeticListener(JavaPlugin plugin, Database database, Configuration configuration) {
+public class CosmeticListener extends BaseListener {
+    public CosmeticListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
     }
 
@@ -48,7 +48,7 @@ public class MineCosmeticListener extends BaseMineListener {
         removedMines.forEach(this::removeMineArmorStand);
     }
 
-    public static final String MINE_ARMOR_STAND_CUSTOM_NAME = MineCosmeticListener.class.getName();
+    public static final String MINE_ARMOR_STAND_CUSTOM_NAME = CosmeticListener.class.getName();
 
     private void formatMineArmorStandLocation(Location location, MineData mineType) {
         switch(mineType) {

@@ -3,6 +3,7 @@ database:
 
 mine:
   ground:
+    allow: true
     explosionPower: 2.5
     cosmetic: true
     adaptiveCosmetic: true
@@ -10,6 +11,7 @@ mine:
     fireBlocks: true
 
   hook:
+    allow: true
     explosionPower: 1.0
     cosmetic: true
     breakBlocks: true

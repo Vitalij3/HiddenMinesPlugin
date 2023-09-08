@@ -6,13 +6,15 @@ public class Ground {
     private final boolean adaptiveCosmetic;
     private final boolean breakBlocks;
     private final boolean fireBlocks;
+    private final boolean allow;
 
-    public Ground(double explosionPower, boolean cosmetic, boolean adaptiveCosmetic, boolean breakBlocks, boolean fireBlocks) {
+    public Ground(double explosionPower, boolean cosmetic, boolean adaptiveCosmetic, boolean breakBlocks, boolean fireBlocks, boolean allow) {
         this.explosionPower = explosionPower;
         this.cosmetic = cosmetic;
         this.adaptiveCosmetic = adaptiveCosmetic;
         this.breakBlocks = breakBlocks;
         this.fireBlocks = fireBlocks;
+        this.allow = allow;
     }
 
      public double getExplosionPower() {
@@ -33,5 +35,9 @@ public class Ground {
 
      public boolean getFireBlocks() {
         return fireBlocks;
+     }
+
+     public boolean getAllow() {
+        return allow;
      }
 }
