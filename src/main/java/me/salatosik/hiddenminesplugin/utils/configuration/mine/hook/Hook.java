@@ -31,7 +31,7 @@ public class Hook {
         return fireBlocks;
     }
 
-    public boolean getAllow() {
+    public boolean isAllow() {
         return allow;
     }
 }

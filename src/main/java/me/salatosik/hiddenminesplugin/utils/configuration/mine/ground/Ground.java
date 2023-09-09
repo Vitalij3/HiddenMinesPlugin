@@ -37,7 +37,7 @@ public class Ground {
         return fireBlocks;
      }
 
-     public boolean getAllow() {
+     public boolean isAllow() {
         return allow;
      }
 }

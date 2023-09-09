@@ -18,7 +18,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
-// TODO реалізувати адаптацію наземної міни під якийсь тип
 public class CosmeticListener extends BaseListener {
     public CosmeticListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
@@ -39,7 +38,31 @@ public class CosmeticListener extends BaseListener {
     @Override
     public void onListenerAdded(List<Mine> mines) {
         super.onListenerAdded(mines);
-        mines.forEach(this::spawnMineArmorStand);
+
+        plugin.getServer().getWorlds().forEach((world) -> {
+            world.getEntities().forEach((entity) -> {
+                String entityCustomName = entity.getCustomName();
+                if(entityCustomName == null) return;
+                if(!entityCustomName.equals(MINE_ARMOR_STAND_CUSTOM_NAME)) return;
+
+                Location entityLocation = entity.getLocation();
+
+                mines.forEach((mine) -> {
+                    Location mineLocation = mine.toLocation(world);
+
+                    if(entityLocation.getBlockX() == mineLocation.getBlockX()
+                            & entityLocation.getBlockY() == mineLocation.getBlockY()
+                            & entityLocation.getBlockZ() == mineLocation.getBlockZ()) {
+
+                        entity.remove();
+                    }
+                });
+            });
+        });
+
+        Hook hookCfg = configuration.getMineConfiguration().getHook();
+        Ground groundCfg = configuration.getMineConfiguration().getGround();
+        if(hookCfg.isAllow() || groundCfg.isAllow()) mines.forEach(this::spawnMineArmorStand);
     }
 
     @Override
@@ -115,6 +138,7 @@ public class CosmeticListener extends BaseListener {
             if(entityLocation.equals(location)) {
                 String entityCustomName = entity.getCustomName();
                 if(entityCustomName == null) return null;
+                if(!entityCustomName.equals(MINE_ARMOR_STAND_CUSTOM_NAME)) return null;
                 return entity;
             }
         }

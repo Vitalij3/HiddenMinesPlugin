@@ -33,12 +33,12 @@ public class MinePlaceBreakListener extends BaseListener {
 
         switch(mineType) {
             case GROUND:
-                if(!configuration.getMineConfiguration().getGround().getAllow()) return SetupMineState.NOT_ALLOWED;
+                if(!configuration.getMineConfiguration().getGround().isAllow()) return SetupMineState.NOT_ALLOWED;
                 if(!itIsPossibleGroundMine(clickedBlock)) return SetupMineState.IS_NOT_GROUND_MINE;
                 break;
 
             case HOOK:
-                if(!configuration.getMineConfiguration().getHook().getAllow()) return SetupMineState.NOT_ALLOWED;
+                if(!configuration.getMineConfiguration().getHook().isAllow()) return SetupMineState.NOT_ALLOWED;
                 if(!itIsPossibleHookMine(clickedBlock)) return SetupMineState.IS_NOT_HOOK_MINE;
                 break;
         }

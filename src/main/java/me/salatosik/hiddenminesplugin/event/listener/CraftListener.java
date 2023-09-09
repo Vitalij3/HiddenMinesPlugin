@@ -36,11 +36,11 @@ public class CraftListener extends BaseListener {
             String messagePattern = ChatColor.DARK_RED + "You can`t craft {item_name} because this is not allowed.";
 
             if(persistentData.equals(MineData.HOOK.getPersistentDataString())) {
-                if(configuration.getMineConfiguration().getHook().getAllow()) return;
+                if(configuration.getMineConfiguration().getHook().isAllow()) return;
                 player.sendMessage(messagePattern.replace("{item_name}", "hook mine"));
 
             } else if(persistentData.equals(MineData.GROUND.getPersistentDataString())) {
-                if(configuration.getMineConfiguration().getGround().getAllow()) return;
+                if(configuration.getMineConfiguration().getGround().isAllow()) return;
                 player.sendMessage(messagePattern.replace("{item_name}", "ground mine"));
             }
 
