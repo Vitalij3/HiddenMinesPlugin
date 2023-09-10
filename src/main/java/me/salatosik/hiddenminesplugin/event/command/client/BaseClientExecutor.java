@@ -4,7 +4,6 @@ import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.event.command.BaseCommandExecutor;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
