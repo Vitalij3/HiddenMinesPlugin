@@ -43,3 +43,12 @@ There are 2 types of mines: **ground mines and hook mines**. Both types of mines
 
 ### Commands
 `/remove <detonate:[true/false]> <radius> <type:[ground/hook]> <max:optional>` - A command that allows you to remove an array of mines within a given radius
+
+### Recipes of mines
+#### Ground
+![img](images/crafting_ground_mine.png)
+![img](images/ground_mine.png)
+
+#### Hook
+![img](images/crafting_hook_mine.png)
+![img](images/hook_mine.png)
