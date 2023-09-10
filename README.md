@@ -46,9 +46,13 @@ There are 2 types of mines: **ground mines and hook mines**. Both types of mines
 
 ### Recipes of mines
 #### Ground
-![img](images/crafting_ground_mine.png)
-![img](images/ground_mine.png)
+<p>
+    <img src="images/crafting_ground_mine.png" alt="img" width="200" height="100"/>
+    <img src="images/ground_mine.png" alt="img" width="200" height="100"/>
+</p>
 
 #### Hook
-![img](images/crafting_hook_mine.png)
-![img](images/hook_mine.png)
+<p>
+    <img src="images/crafting_hook_mine.png" alt="img" width="200" height="100"/>
+    <img src="images/hook_mine.png" alt="img" width="200" height="100"/>
+</p>
