@@ -88,7 +88,7 @@ public class MinePlaceBreakListener extends BaseListener {
                         UtilMethods.addMineToDatabase(groundMine, database, logger, (v) -> UtilMethods.createBukkitThreadAndStart(plugin, () -> {
                             event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Mine placed!");
                             if(event.getPlayer().getGameMode() != GameMode.CREATIVE)
-                                removeItemFromInventory(clickedItem, 1, event.getPlayer().getInventory());
+                                clickedItem.setAmount(clickedItem.getAmount() - 1);
                         }));
                     });
                     event.setCancelled(true);

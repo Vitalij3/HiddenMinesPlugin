@@ -38,10 +38,12 @@ public class CraftListener extends BaseListener {
             if(persistentData.equals(MineData.HOOK.getPersistentDataString())) {
                 if(configuration.getMineConfiguration().getHook().isAllow()) return;
                 player.sendMessage(messagePattern.replace("{item_name}", "hook mine"));
+                event.setCancelled(true);
 
             } else if(persistentData.equals(MineData.GROUND.getPersistentDataString())) {
                 if(configuration.getMineConfiguration().getGround().isAllow()) return;
                 player.sendMessage(messagePattern.replace("{item_name}", "ground mine"));
+                event.setCancelled(true);
             }
 
             break;
