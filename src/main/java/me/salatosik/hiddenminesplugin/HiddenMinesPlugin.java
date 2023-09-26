@@ -72,6 +72,7 @@ public final class HiddenMinesPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        database.closePooledConnection();
         logger.info("Plugin disabled!");
     }
 

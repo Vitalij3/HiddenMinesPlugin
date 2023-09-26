@@ -8,10 +8,12 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import me.salatosik.hiddenminesplugin.core.data.MineData;
+import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.dao.DaoManager;
+import com.j256.ormlite.jdbc.JdbcPooledConnectionSource;
+import com.j256.ormlite.table.TableUtils;
 import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
+import me.salatosik.hiddenminesplugin.core.database.orm.table.TableMine;
 import me.salatosik.hiddenminesplugin.utils.BukkitRunnableWrapper;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -23,33 +25,20 @@ import org.jetbrains.annotations.Nullable;
 
 public class Database {
     private static final String JDBC_PREFIX = "jdbc:sqlite:{url}";
-    private final HikariDataSource dataSource;
     private final JavaPlugin plugin;
+
+    private final JdbcPooledConnectionSource connectionSource;
+    private final Dao<TableMine, Object> minesDao;
 
     private final LinkedList<DatabaseListener<Mine>> databaseMineListeners = new LinkedList<>();
 
     public Database(@NotNull File databaseFile, @NotNull JavaPlugin plugin) throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
 
-        HikariConfig hikariConfig = new HikariConfig();
-        hikariConfig.setJdbcUrl(JDBC_PREFIX.replace("{url}", databaseFile.getAbsolutePath()));
-        hikariConfig.setAutoCommit(true);
-        hikariConfig.setMaximumPoolSize(10);
+        connectionSource = new JdbcPooledConnectionSource(JDBC_PREFIX.replace("{url}", databaseFile.getAbsolutePath()));
 
-        dataSource = new HikariDataSource(hikariConfig);
-
-        try(Connection conn = dataSource.getConnection()) {
-            try(Statement statement = conn.createStatement()) {
-                statement.execute("create table if not exists mines " +
-                        "(x int not null, " +
-                        "y int not null, " +
-                        "z int not null, " +
-                        "mineType text not null," +
-                        "worldType text not null)");
-            } finally {
-                conn.close();
-            }
-        }
+        TableUtils.createTableIfNotExists(connectionSource, TableMine.class);
+        minesDao = DaoManager.createDao(connectionSource, TableMine.class);
 
         this.plugin = plugin;
 
@@ -67,66 +56,44 @@ public class Database {
         databaseMineListeners.add(databaseMineListener);
     }
 
-    public void addMine(@NotNull Mine mine) throws SQLException {
-        String sql = "insert into mines (x, y, z, mineType, worldType) values(?, ?, ?, ?, ?)";
-
-        try(Connection connection = dataSource.getConnection()) {
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setInt(1, mine.getX());
-                preparedStatement.setInt(2, mine.getY());
-                preparedStatement.setInt(3, mine.getZ());
-                preparedStatement.setString(4, mine.getMineType().name());
-                preparedStatement.setString(5, mine.getWorldType().name());
-                preparedStatement.executeUpdate();
-
-                notifyListeners((listener) -> listener.onItemAdd(mine), databaseMineListeners);
-            } finally {
-                connection.close();
-            }
+    public void closePooledConnection() {
+        try {
+            connectionSource.close();
+        } catch(Exception exception) {
+            exception.printStackTrace();
         }
     }
 
+    public void addMine(@NotNull Mine mine) throws SQLException {
+        TableMine tableMine = new TableMine(mine.getX(), mine.getY(), mine.getZ(), mine.getMineType(), mine.getWorldType());
+        minesDao.create(tableMine);
+        notifyListeners((listener) -> listener.onItemAdd(mine), databaseMineListeners);
+    }
+
     public void removeMine(@NotNull Mine mine) throws SQLException {
-        String sql = "delete from mines where x = ? and y = ? and z = ? and mineType = ? and worldType = ?";
-
-        try(Connection connection = dataSource.getConnection()) {
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setInt(1, mine.getX());
-                preparedStatement.setInt(2, mine.getY());
-                preparedStatement.setInt(3, mine.getZ());
-                preparedStatement.setString(4, mine.getMineType().name());
-                preparedStatement.setString(5, mine.getWorldType().name());
-                preparedStatement.executeUpdate();
-
+        for(TableMine tableMine: minesDao.queryForAll()) {
+            if(tableMine.equalsMine(mine)) {
+                minesDao.deleteById(tableMine.getId());
                 notifyListeners((listener) -> listener.onItemRemove(mine), databaseMineListeners);
-
-            } finally {
-                connection.close();
+                break;
             }
         }
     }
 
     public void removeMines(@NotNull List<Mine> mines, @Nullable Consumer<Mine> onEach) throws SQLException {
-        String sql = "delete from mines where x = ? and y = ? and z = ? and mineType = ? and worldType = ?";
+        LinkedList<Mine> removedMines = new LinkedList<>();
 
-        try(Connection connection = dataSource.getConnection()) {
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                for(Mine mine: mines) {
-                    preparedStatement.setInt(1, mine.getX());
-                    preparedStatement.setInt(2, mine.getY());
-                    preparedStatement.setInt(3, mine.getZ());
-                    preparedStatement.setString(4, mine.getMineType().name());
-                    preparedStatement.setString(5, mine.getWorldType().name());
-                    preparedStatement.executeUpdate();
-
+        for(TableMine tableMine: minesDao.queryForAll()) {
+            for(Mine mine: mines) {
+                if(tableMine.equalsMine(mine)) {
+                    minesDao.deleteById(tableMine.getId());
+                    removedMines.add(mine);
                     if(onEach != null) onEach.accept(mine);
                 }
-
-            } finally {
-                notifyListeners((listener) -> listener.onItemRemoveList(mines), databaseMineListeners);
-                connection.close();
             }
         }
+
+        notifyListeners((listener) -> listener.onItemRemoveList(removedMines), databaseMineListeners);
     }
 
     public void removeMines(@NotNull List<Mine> mines) throws SQLException {
@@ -134,31 +101,9 @@ public class Database {
     }
 
     public List<Mine> getAllMines() throws SQLException {
-        String sql = "select * from mines";
-
-        try(Connection connection = dataSource.getConnection()) {
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                try(ResultSet rs = preparedStatement.executeQuery()) {
-                    LinkedList<Mine> linkedList = new LinkedList<>();
-
-                    while(rs.next()) {
-                        Mine mine = new Mine(
-                                rs.getInt("x"),
-                                rs.getInt("y"),
-                                rs.getInt("z"),
-                                MineData.valueOf(rs.getString("mineType")),
-                                World.Environment.valueOf(rs.getString("worldType"))
-                        );
-
-                        linkedList.add(mine);
-                    }
-
-                    return linkedList;
-                }
-            } finally {
-                connection.close();
-            }
-        }
+        List<Mine> mines = new LinkedList<>();
+        minesDao.queryForAll().forEach((tableMine) -> mines.add(tableMine.toMine()));
+        return mines;
     }
 
     private class DatabaseCleaner extends BukkitRunnable {

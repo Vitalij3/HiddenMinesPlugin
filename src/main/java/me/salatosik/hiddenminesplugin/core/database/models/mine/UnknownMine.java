@@ -6,9 +6,6 @@ import me.salatosik.hiddenminesplugin.core.database.models.DatabaseObject;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import java.util.List;
 
 public class UnknownMine extends CoordinateObject implements DatabaseObject {
     protected final int x;
