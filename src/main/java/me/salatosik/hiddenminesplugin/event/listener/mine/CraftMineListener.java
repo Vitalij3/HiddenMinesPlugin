@@ -1,7 +1,7 @@
-package me.salatosik.hiddenminesplugin.event.listener;
+package me.salatosik.hiddenminesplugin.event.listener.mine;
 
-import me.salatosik.hiddenminesplugin.core.BaseData;
-import me.salatosik.hiddenminesplugin.core.MineData;
+import me.salatosik.hiddenminesplugin.core.data.BaseData;
+import me.salatosik.hiddenminesplugin.core.data.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.ChatColor;
@@ -14,8 +14,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class CraftListener extends BaseListener {
-    public CraftListener(JavaPlugin plugin, Database database, Configuration configuration) {
+public class CraftMineListener extends BaseMineListener {
+    public CraftMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
     }
 
@@ -27,8 +27,7 @@ public class CraftListener extends BaseListener {
         PersistentDataContainer persistentDataContainer = resultItemMeta.getPersistentDataContainer();
 
         for(BaseData baseData: MineData.values()) {
-            NamespacedKey namespacedKey = new NamespacedKey(plugin, baseData.getNamespacedKeyString());
-            String persistentData = persistentDataContainer.get(namespacedKey, PersistentDataType.STRING);
+            String persistentData = persistentDataContainer.get(baseData.getNamespacedKeyInstance(plugin), PersistentDataType.STRING);
 
             if(persistentData == null) continue;
 

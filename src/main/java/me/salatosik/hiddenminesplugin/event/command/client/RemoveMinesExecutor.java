@@ -1,9 +1,9 @@
 package me.salatosik.hiddenminesplugin.event.command.client;
 
 import me.salatosik.hiddenminesplugin.UtilMethods;
-import me.salatosik.hiddenminesplugin.core.MineData;
+import me.salatosik.hiddenminesplugin.core.data.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
-import me.salatosik.hiddenminesplugin.core.database.models.Mine;
+import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -68,10 +68,10 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
             if(count >= max) break;
             Mine mine = minesFromDatabase.get(i);
 
-            if(mine.worldType != playerWorld.getEnvironment()) continue;
-            if(type != null) if(mine.mineType != type) continue;
+            if(mine.getWorldType() != playerWorld.getEnvironment()) continue;
+            if(type != null) if(mine.getMineType() != type) continue;
 
-            Vector mineVector = new Vector(mine.x, mine.y, mine.z);
+            Vector mineVector = new Vector(mine.getX(), mine.getY(), mine.getZ());
             double distance = playerVector.distance(mineVector);
 
             if(distance <= radius) {
@@ -84,11 +84,11 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
             UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
                 if(detonate) {
                     List<Mine> detonateMines = new LinkedList<>();
-                    UtilMethods.removeMinesFromDatabase(removeList, database, logger, detonateMines::add);
+                    UtilMethods.removeMinesFromDatabase(removeList, database, detonateMines::add);
 
                     UtilMethods.createBukkitThreadAndStart(plugin, () -> {
                         detonateMines.forEach((mine) -> {
-                            switch(mine.mineType) {
+                            switch(mine.getMineType()) {
                                 case HOOK:
                                     Location hookMineLocation = mine.toLocation(playerWorld);
                                     playerWorld.createExplosion(
@@ -116,7 +116,7 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                         });
                     });
 
-                } else UtilMethods.removeMinesFromDatabase(removeList, database, logger);
+                } else UtilMethods.removeMinesFromDatabase(removeList, database);
 
                 player.sendMessage(ChatColor.GREEN + String.valueOf(removeList.size()) + " mines removed!");
             });
@@ -165,9 +165,9 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                 int count = 0;
 
                 for(Mine mine: minesFromDatabase) {
-                    if(mine.worldType != playerWorld.getEnvironment()) continue;
-                    if(type != null) if(type != mine.mineType) continue;
-                    Vector mineVector = new Vector(mine.x, mine.y, mine.z);
+                    if(mine.getWorldType() != playerWorld.getEnvironment()) continue;
+                    if(type != null) if(type != mine.getMineType()) continue;
+                    Vector mineVector = new Vector(mine.getX(), mine.getY(), mine.getZ());
                     double distance = playerVector.distance(mineVector);
                     if (distance <= radius) count++;
                 }

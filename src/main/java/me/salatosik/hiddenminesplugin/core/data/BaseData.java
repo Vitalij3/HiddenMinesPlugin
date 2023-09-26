@@ -1,5 +1,6 @@
-package me.salatosik.hiddenminesplugin.core;
+package me.salatosik.hiddenminesplugin.core.data;
 
+import me.salatosik.hiddenminesplugin.core.data.model.Ingredient;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -30,4 +31,5 @@ public interface BaseData {
     String getNamespacedKeyString();
     String[] getRecipe();
     Ingredient[] getIngredients();
+    NamespacedKey getNamespacedKeyInstance(JavaPlugin javaPlugin);
 }

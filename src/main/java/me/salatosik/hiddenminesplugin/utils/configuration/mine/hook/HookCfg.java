@@ -1,13 +1,13 @@
 package me.salatosik.hiddenminesplugin.utils.configuration.mine.hook;
 
-public class Hook {
+public class HookCfg {
     private final double explosionPower;
     private final boolean cosmetic;
     private final boolean breakBlocks;
     private final boolean fireBlocks;
     private final boolean allow;
 
-    public Hook(double explosionPower, boolean cosmetic, boolean breakBlocks, boolean fireBlocks, boolean allow) {
+    public HookCfg(double explosionPower, boolean cosmetic, boolean breakBlocks, boolean fireBlocks, boolean allow) {
         this.explosionPower = explosionPower;
         this.cosmetic = cosmetic;
         this.breakBlocks = breakBlocks;

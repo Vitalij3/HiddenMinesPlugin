@@ -1,8 +1,8 @@
 package me.salatosik.hiddenminesplugin.event.command;
 
 import me.salatosik.hiddenminesplugin.core.database.Database;
-import me.salatosik.hiddenminesplugin.core.database.interfaces.DatabaseListener;
-import me.salatosik.hiddenminesplugin.core.database.models.Mine;
+import me.salatosik.hiddenminesplugin.core.database.DatabaseListener;
+import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -12,7 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
-public abstract class BaseCommandExecutor implements DatabaseListener, CommandExecutor {
+public abstract class BaseCommandExecutor implements DatabaseListener<Mine>, CommandExecutor {
     protected final LinkedList<Mine> minesFromDatabase = new LinkedList<>();
     protected final JavaPlugin plugin;
     protected final Database database;
@@ -25,7 +25,7 @@ public abstract class BaseCommandExecutor implements DatabaseListener, CommandEx
         this.configuration = configuration;
         this.logger = plugin.getLogger();
 
-        try { database.subscribeListener(this); }
+        try { database.subscribeMineListener(this); }
         catch(SQLException sqlException) {
             sqlException.printStackTrace();
             plugin.getPluginLoader().disablePlugin(plugin);
@@ -33,12 +33,12 @@ public abstract class BaseCommandExecutor implements DatabaseListener, CommandEx
     }
 
     @Override
-    public void onMineAdd(Mine mine) {
+    public void onItemAdd(Mine mine) {
         minesFromDatabase.add(mine);
     }
 
     @Override
-    public void onMineRemove(Mine mine) {
+    public void onItemRemove(Mine mine) {
         if(!minesFromDatabase.isEmpty()) minesFromDatabase.remove(mine);
     }
 
@@ -48,7 +48,7 @@ public abstract class BaseCommandExecutor implements DatabaseListener, CommandEx
     }
 
     @Override
-    public void onMineRemoveList(List<Mine> removedMines) {
+    public void onItemRemoveList(List<Mine> removedMines) {
         minesFromDatabase.removeAll(removedMines);
     }
 }

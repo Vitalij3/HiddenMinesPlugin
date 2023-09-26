@@ -1,10 +1,10 @@
-package me.salatosik.hiddenminesplugin.event.listener;
+package me.salatosik.hiddenminesplugin.event.listener.mine;
 
 import com.destroystokyo.paper.event.block.BlockDestroyEvent;
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
-import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
+import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
+import me.salatosik.hiddenminesplugin.core.database.models.mine.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-public class InteractListener extends BaseListener {
-    public InteractListener(JavaPlugin plugin, Database database, Configuration configuration) {
+public class InteractMineListener extends BaseMineListener {
+    public InteractMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
 
         EntityTimer entityTimer = new EntityTimer();
@@ -54,7 +54,7 @@ public class InteractListener extends BaseListener {
                 UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
                     synchronized(worldThreadActive) { worldThreadActive.set(worldThreadActive.incrementAndGet()); }
 
-                    List<Mine> filteredMinesFromDatabase = minesFromDatabase.stream().filter((mine) -> mine.worldType == world.getEnvironment()).collect(Collectors.toList());
+                    List<Mine> filteredMinesFromDatabase = minesFromDatabase.stream().filter((mine) -> mine.getWorldType() == world.getEnvironment()).collect(Collectors.toList());
 
                     world.getEntities().forEach((entity) -> {
                         if(!entity.isOnGround()) return;
@@ -108,7 +108,7 @@ public class InteractListener extends BaseListener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBlockPhysics(BlockPhysicsEvent event) {
-        if(ALLOWED_GROUND_MINE_GROUNDS.contains(event.getBlock().getType())) {
+        if(ALLOWED_MINE_GROUNDS.contains(event.getBlock().getType())) {
             detonateMineAndRemoveFromDatabase(event.getBlock().getLocation());
         }
     }

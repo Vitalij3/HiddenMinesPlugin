@@ -1,10 +1,10 @@
-package me.salatosik.hiddenminesplugin.event.listener;
+package me.salatosik.hiddenminesplugin.event.listener.mine;
 
-import me.salatosik.hiddenminesplugin.core.MineData;
+import me.salatosik.hiddenminesplugin.core.data.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.UtilMethods;
-import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
+import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
+import me.salatosik.hiddenminesplugin.core.database.models.mine.UnknownMine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -18,8 +18,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class MinePlaceBreakListener extends BaseListener {
-    public MinePlaceBreakListener(JavaPlugin plugin, Database database, Configuration configuration) {
+public class MinePlaceBreakMineListener extends BaseMineListener {
+    public MinePlaceBreakMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
     }
 
@@ -61,8 +61,8 @@ public class MinePlaceBreakListener extends BaseListener {
         ItemMeta clickedItemMeta = clickedItem.getItemMeta();
         PersistentDataContainer clickedItemMetaPersistentData = clickedItemMeta.getPersistentDataContainer();
 
-        NamespacedKey hookMineNamespacedKey = new NamespacedKey(plugin, MineData.HOOK.getNamespacedKeyString());
-        NamespacedKey groundMineNamespacedKey = new NamespacedKey(plugin, MineData.GROUND.getNamespacedKeyString());
+        NamespacedKey hookMineNamespacedKey = MineData.HOOK.getNamespacedKeyInstance(plugin);
+        NamespacedKey groundMineNamespacedKey = MineData.GROUND.getNamespacedKeyInstance(plugin);
 
         String clickedItemPersistentDataHook = clickedItemMetaPersistentData.get(hookMineNamespacedKey, PersistentDataType.STRING);
         String clickedItemPersistentDataGround = clickedItemMetaPersistentData.get(groundMineNamespacedKey, PersistentDataType.STRING);
@@ -85,7 +85,7 @@ public class MinePlaceBreakListener extends BaseListener {
                 case SUCCESS:
                     UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
                         Mine groundMine = new Mine(new UnknownMine(clickedBlock), selectedMineType);
-                        UtilMethods.addMineToDatabase(groundMine, database, logger, (v) -> UtilMethods.createBukkitThreadAndStart(plugin, () -> {
+                        UtilMethods.addMineToDatabase(groundMine, database, (v) -> UtilMethods.createBukkitThreadAndStart(plugin, () -> {
                             event.getPlayer().sendMessage(ChatColor.DARK_GREEN + "Mine placed!");
                             if(event.getPlayer().getGameMode() != GameMode.CREATIVE)
                                 clickedItem.setAmount(clickedItem.getAmount() - 1);
@@ -131,10 +131,10 @@ public class MinePlaceBreakListener extends BaseListener {
         Location breakedBlockLocation = event.getBlock().getLocation();
         GameMode eventPlayerGamemode = event.getPlayer().getGameMode();
 
-        switch(mine.mineType) {
+        switch(mine.getMineType()) {
             case HOOK:
                 UtilMethods.createBukkitAsyncThreadAndStart(plugin,
-                        () -> UtilMethods.removeMineFromDatabase(mine, database, logger));
+                        () -> UtilMethods.removeMineFromDatabase(mine, database));
                 break;
 
             case GROUND:
@@ -142,7 +142,7 @@ public class MinePlaceBreakListener extends BaseListener {
 
                 if(SHOVELS.contains(itemInMainHand)) {
                     UtilMethods.createBukkitAsyncThreadAndStart(plugin, () ->
-                            UtilMethods.removeMineFromDatabase(mine, database, logger, (v) -> {
+                            UtilMethods.removeMineFromDatabase(mine, database, (v) -> {
 
                         if(eventPlayerGamemode != GameMode.CREATIVE) {
                             UtilMethods.createBukkitThreadAndStart(plugin, () -> breakedBlockWorld.dropItem(breakedBlockLocation, MineData.GROUND.toItemStack(plugin)));

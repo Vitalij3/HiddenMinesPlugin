@@ -8,7 +8,7 @@ database:
   filename: "database.db"
 
 mine:
-  ground:
+  groundCfg:
     allow: true
     explosionPower: 2.5
     cosmetic: true
@@ -16,7 +16,7 @@ mine:
     breakBlocks: true
     fireBlocks: true
 
-  hook:
+  hookCfg:
     allow: true
     explosionPower: 1.0
     cosmetic: true
@@ -27,22 +27,22 @@ mine:
 `database.filename` - the name for database file
 
 #### The mine
-There are 2 types of mines: **ground mines and hook mines**. Both types of mines have similar parameters that perform the **same functionality**
+There are 2 types of mines: **groundCfg mines and hookCfg mines**. Both types of mines have similar parameters that perform the **same functionality**
 <br><br>
-`mine.[ground/hook].allow` - if false, then players are not allowed to craft and place a mine.
+`mine.[groundCfg/hookCfg].allow` - if false, then players are not allowed to craft and place a mine.
 <br><br>
-`mine.[ground/hook].explosionPower` - the force of the explosion. Be careful, if you write down too large a number then the plugin may disrupt the server.
+`mine.[groundCfg/hookCfg].explosionPower` - the force of the explosion. Be careful, if you write down too large a number then the plugin may disrupt the server.
 <br><br>
-`mine.[ground/hook].cosmetic` - if true, then the mine will be displayed visually
+`mine.[groundCfg/hookCfg].cosmetic` - if true, then the mine will be displayed visually
 <br><br>
-`mine.ground.adaptiveCosmetic` - if true, then the visual part of the mines will adapt relative to the block on which it is located
+`mine.groundCfg.adaptiveCosmetic` - if true, then the visual part of the mines will adapt relative to the block on which it is located
 <br><br>
-`mine.[ground/hook].breakBlocks` - if true, then the blocks will collapse as from a normal TNT explosion
+`mine.[groundCfg/hookCfg].breakBlocks` - if true, then the blocks will collapse as from a normal TNT explosion
 <br><br>
-`mine.[ground/hook].fireBlock` - if true, then the blocks can ignite after the explosion
+`mine.[groundCfg/hookCfg].fireBlock` - if true, then the blocks can ignite after the explosion
 
 ### Commands
-`/remove <detonate:[true/false]> <radius> <type:[ground/hook]> <max:optional>` - A command that allows you to remove an array of mines within a given radius
+`/remove <detonate:[true/false]> <radius> <type:[groundCfg/hookCfg]> <max:optional>` - A command that allows you to remove an array of mines within a given radius
 
 ### Recipes of mines
 #### Ground

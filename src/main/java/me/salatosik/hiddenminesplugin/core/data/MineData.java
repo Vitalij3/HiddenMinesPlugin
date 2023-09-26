@@ -1,7 +1,10 @@
-package me.salatosik.hiddenminesplugin.core;
+package me.salatosik.hiddenminesplugin.core.data;
 
+import me.salatosik.hiddenminesplugin.core.data.model.Ingredient;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public enum MineData implements BaseData {
     HOOK(
@@ -47,6 +50,11 @@ public enum MineData implements BaseData {
     @Override
     public Ingredient[] getIngredients() {
         return ingredients;
+    }
+
+    @Override
+    public NamespacedKey getNamespacedKeyInstance(JavaPlugin javaPlugin) {
+        return new NamespacedKey(javaPlugin, getNamespacedKeyString());
     }
 
     @Override

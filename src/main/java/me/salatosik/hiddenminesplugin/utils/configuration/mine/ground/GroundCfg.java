@@ -1,6 +1,6 @@
 package me.salatosik.hiddenminesplugin.utils.configuration.mine.ground;
 
-public class Ground {
+public class GroundCfg {
     private final double explosionPower;
     private final boolean cosmetic;
     private final boolean adaptiveCosmetic;
@@ -8,7 +8,7 @@ public class Ground {
     private final boolean fireBlocks;
     private final boolean allow;
 
-    public Ground(double explosionPower, boolean cosmetic, boolean adaptiveCosmetic, boolean breakBlocks, boolean fireBlocks, boolean allow) {
+    public GroundCfg(double explosionPower, boolean cosmetic, boolean adaptiveCosmetic, boolean breakBlocks, boolean fireBlocks, boolean allow) {
         this.explosionPower = explosionPower;
         this.cosmetic = cosmetic;
         this.adaptiveCosmetic = adaptiveCosmetic;

@@ -1,19 +1,21 @@
 package me.salatosik.hiddenminesplugin;
 
-import me.salatosik.hiddenminesplugin.core.BaseData;
-import me.salatosik.hiddenminesplugin.core.Ingredient;
-import me.salatosik.hiddenminesplugin.core.MineData;
+import me.salatosik.hiddenminesplugin.core.data.BaseData;
+import me.salatosik.hiddenminesplugin.core.data.model.Ingredient;
+import me.salatosik.hiddenminesplugin.core.data.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.event.command.client.RemoveMinesExecutor;
-import me.salatosik.hiddenminesplugin.event.listener.*;
+import me.salatosik.hiddenminesplugin.event.listener.mine.CosmeticMineListener;
+import me.salatosik.hiddenminesplugin.event.listener.mine.CraftMineListener;
+import me.salatosik.hiddenminesplugin.event.listener.mine.InteractMineListener;
+import me.salatosik.hiddenminesplugin.event.listener.mine.MinePlaceBreakMineListener;
 import me.salatosik.hiddenminesplugin.utils.CommonFunctionThrowsException;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import me.salatosik.hiddenminesplugin.utils.configuration.database.DatabaseConfiguration;
 import me.salatosik.hiddenminesplugin.utils.configuration.mine.MineConfiguration;
-import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.Ground;
-import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.Hook;
+import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.GroundCfg;
+import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.HookCfg;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.TabCompleter;
@@ -26,6 +28,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Logger;
 
 public final class HiddenMinesPlugin extends JavaPlugin {
@@ -55,10 +59,12 @@ public final class HiddenMinesPlugin extends JavaPlugin {
         initRecipes();
 
         PluginManager pluginManager = getServer().getPluginManager();
-        pluginManager.registerEvents(new MinePlaceBreakListener(this, database, configuration), this);
-        pluginManager.registerEvents(new InteractListener(this, database, configuration), this);
-        pluginManager.registerEvents(new CosmeticListener(this, database, configuration), this);
-        pluginManager.registerEvents(new CraftListener(this, database, configuration), this);
+
+        // mine listeners
+        pluginManager.registerEvents(new MinePlaceBreakMineListener(this, database, configuration), this);
+        pluginManager.registerEvents(new InteractMineListener(this, database, configuration), this);
+        pluginManager.registerEvents(new CosmeticMineListener(this, database, configuration), this);
+        pluginManager.registerEvents(new CraftMineListener(this, database, configuration), this);
 
         RemoveMinesExecutor removeMinesExecutor = new RemoveMinesExecutor(this, database, configuration);
         initCommandExecutor("remove", removeMinesExecutor, removeMinesExecutor);
@@ -82,10 +88,12 @@ public final class HiddenMinesPlugin extends JavaPlugin {
     }
 
     private void initRecipes() {
-        for(BaseData data: MineData.values()) {
-            NamespacedKey namespacedKey = new NamespacedKey(this, data.getNamespacedKeyString());
+        List<BaseData> baseDataList = new LinkedList<>();
+        baseDataList.addAll(List.of(MineData.values()));
+
+        for(BaseData data: baseDataList) {
             ItemStack itemStack = data.toItemStack(this);
-            ShapedRecipe shapedRecipe = new ShapedRecipe(namespacedKey, itemStack);
+            ShapedRecipe shapedRecipe = new ShapedRecipe(data.getNamespacedKeyInstance(this), itemStack);
             shapedRecipe.shape(data.getRecipe());
             for(Ingredient ingredient: data.getIngredients()) shapedRecipe.setIngredient(ingredient.key, ingredient.item);
             Bukkit.addRecipe(shapedRecipe);
@@ -116,11 +124,11 @@ public final class HiddenMinesPlugin extends JavaPlugin {
         boolean hookAllow = fc.getBoolean("mine.hook.allow");
 
         // mines configuration
-        Ground groundMineConfiguration = new Ground(groundMineExplosionPower, groundMineCosmetic, groundMineAdaptiveCosmetic, groundBreakBlocks, groundFireBlocks, groundAllow);
-        Hook hookMineConfiguration = new Hook(hookMineExplosionPower, hookMineCosmetic, hookMineBreakBlocks, hookMineFireBlocks, hookAllow);
+        GroundCfg groundCfgMineConfiguration = new GroundCfg(groundMineExplosionPower, groundMineCosmetic, groundMineAdaptiveCosmetic, groundBreakBlocks, groundFireBlocks, groundAllow);
+        HookCfg hookCfgMineConfiguration = new HookCfg(hookMineExplosionPower, hookMineCosmetic, hookMineBreakBlocks, hookMineFireBlocks, hookAllow);
 
         // all mines configuration
-        MineConfiguration mineConfiguration = new MineConfiguration(groundMineConfiguration, hookMineConfiguration);
+        MineConfiguration mineConfiguration = new MineConfiguration(groundCfgMineConfiguration, hookCfgMineConfiguration);
 
         return new Configuration(databaseConfiguration, mineConfiguration);
     }

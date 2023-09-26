@@ -1,6 +1,8 @@
-package me.salatosik.hiddenminesplugin.core.database.models;
+package me.salatosik.hiddenminesplugin.core.database.models.mine;
 
 import com.google.common.base.Objects;
+import me.salatosik.hiddenminesplugin.core.database.models.CoordinateObject;
+import me.salatosik.hiddenminesplugin.core.database.models.DatabaseObject;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -8,11 +10,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
-public class UnknownMine {
-    public final int x;
-    public final int y;
-    public final int z;
-    public final World.Environment worldType;
+public class UnknownMine extends CoordinateObject implements DatabaseObject {
+    protected final int x;
+    protected final int y;
+    protected final int z;
+    protected final World.Environment worldType;
 
     public UnknownMine(int x, int y, int z, World.Environment worldType) {
         this.x = x;
@@ -48,18 +50,23 @@ public class UnknownMine {
         return Objects.hashCode(x, y, z);
     }
 
-    public Location toLocation(JavaPlugin plugin) {
-        List<World> worlds = plugin.getServer().getWorlds();
-        for(World world: worlds) {
-            if(world.getEnvironment() == worldType) {
-                return new Location(world, x, y, z);
-            }
-        }
-
-        return null;
+    @Override
+    public int getX() {
+        return x;
     }
 
-    public Location toLocation(World world) {
-        return new Location(world, x, y, z);
+    @Override
+    public int getY() {
+        return y;
+    }
+
+    @Override
+    public int getZ() {
+        return z;
+    }
+
+    @Override
+    public World.Environment getWorldType() {
+        return worldType;
     }
 }

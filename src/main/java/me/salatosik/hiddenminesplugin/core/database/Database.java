@@ -10,10 +10,8 @@ import java.util.logging.Logger;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import me.salatosik.hiddenminesplugin.core.MineData;
-import me.salatosik.hiddenminesplugin.core.database.interfaces.DatabaseListener;
-import me.salatosik.hiddenminesplugin.core.database.models.Mine;
-import me.salatosik.hiddenminesplugin.core.database.models.UnknownMine;
+import me.salatosik.hiddenminesplugin.core.data.MineData;
+import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
 import me.salatosik.hiddenminesplugin.utils.BukkitRunnableWrapper;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -26,8 +24,9 @@ import org.jetbrains.annotations.Nullable;
 public class Database {
     private static final String JDBC_PREFIX = "jdbc:sqlite:{url}";
     private final HikariDataSource dataSource;
-    private final LinkedList<DatabaseListener> databaseListeners = new LinkedList<>();
     private final JavaPlugin plugin;
+
+    private final LinkedList<DatabaseListener<Mine>> databaseMineListeners = new LinkedList<>();
 
     public Database(@NotNull File databaseFile, @NotNull JavaPlugin plugin) throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
@@ -41,14 +40,12 @@ public class Database {
 
         try(Connection conn = dataSource.getConnection()) {
             try(Statement statement = conn.createStatement()) {
-                String sql = "create table if not exists mines " +
+                statement.execute("create table if not exists mines " +
                         "(x int not null, " +
                         "y int not null, " +
                         "z int not null, " +
                         "mineType text not null," +
-                        "worldType text not null)";
-
-                statement.execute(sql);
+                        "worldType text not null)");
             } finally {
                 conn.close();
             }
@@ -56,14 +53,18 @@ public class Database {
 
         this.plugin = plugin;
 
-
         DatabaseCleaner databaseCleaner = new DatabaseCleaner();
         databaseCleaner.runTaskTimerAsynchronously(plugin, 20, DatabaseCleaner.UPDATE_RATE);
     }
 
-    private void notifyListeners(Consumer<DatabaseListener> consumer) {
+    private <T> void notifyListeners(Consumer<DatabaseListener<T>> consumer, List<DatabaseListener<T>> databaseListeners) {
         BukkitRunnableWrapper bukkitRunnable = new BukkitRunnableWrapper(() -> databaseListeners.forEach(consumer));
         bukkitRunnable.runTask(plugin);
+    }
+
+    public void subscribeMineListener(DatabaseListener<Mine> databaseMineListener) throws SQLException {
+        databaseMineListener.onListenerAdded(getAllMines());
+        databaseMineListeners.add(databaseMineListener);
     }
 
     public void addMine(@NotNull Mine mine) throws SQLException {
@@ -71,14 +72,14 @@ public class Database {
 
         try(Connection connection = dataSource.getConnection()) {
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setInt(1, mine.x);
-                preparedStatement.setInt(2, mine.y);
-                preparedStatement.setInt(3, mine.z);
-                preparedStatement.setString(4, mine.mineType.name());
-                preparedStatement.setString(5, mine.worldType.name());
-                preparedStatement.execute();
+                preparedStatement.setInt(1, mine.getX());
+                preparedStatement.setInt(2, mine.getY());
+                preparedStatement.setInt(3, mine.getZ());
+                preparedStatement.setString(4, mine.getMineType().name());
+                preparedStatement.setString(5, mine.getWorldType().name());
+                preparedStatement.executeUpdate();
 
-                notifyListeners((listener) -> listener.onMineAdd(mine));
+                notifyListeners((listener) -> listener.onItemAdd(mine), databaseMineListeners);
             } finally {
                 connection.close();
             }
@@ -90,14 +91,14 @@ public class Database {
 
         try(Connection connection = dataSource.getConnection()) {
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setInt(1, mine.x);
-                preparedStatement.setInt(2, mine.y);
-                preparedStatement.setInt(3, mine.z);
-                preparedStatement.setString(4, mine.mineType.name());
-                preparedStatement.setString(5, mine.worldType.name());
-                preparedStatement.execute();
+                preparedStatement.setInt(1, mine.getX());
+                preparedStatement.setInt(2, mine.getY());
+                preparedStatement.setInt(3, mine.getZ());
+                preparedStatement.setString(4, mine.getMineType().name());
+                preparedStatement.setString(5, mine.getWorldType().name());
+                preparedStatement.executeUpdate();
 
-                notifyListeners((listener) -> listener.onMineRemove(mine));
+                notifyListeners((listener) -> listener.onItemRemove(mine), databaseMineListeners);
 
             } finally {
                 connection.close();
@@ -111,18 +112,18 @@ public class Database {
         try(Connection connection = dataSource.getConnection()) {
             try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 for(Mine mine: mines) {
-                    preparedStatement.setInt(1, mine.x);
-                    preparedStatement.setInt(2, mine.y);
-                    preparedStatement.setInt(3, mine.z);
-                    preparedStatement.setString(4, mine.mineType.name());
-                    preparedStatement.setString(5, mine.worldType.name());
-                    preparedStatement.execute();
+                    preparedStatement.setInt(1, mine.getX());
+                    preparedStatement.setInt(2, mine.getY());
+                    preparedStatement.setInt(3, mine.getZ());
+                    preparedStatement.setString(4, mine.getMineType().name());
+                    preparedStatement.setString(5, mine.getWorldType().name());
+                    preparedStatement.executeUpdate();
 
                     if(onEach != null) onEach.accept(mine);
                 }
 
             } finally {
-                notifyListeners((listener) -> listener.onMineRemoveList(mines));
+                notifyListeners((listener) -> listener.onItemRemoveList(mines), databaseMineListeners);
                 connection.close();
             }
         }
@@ -130,34 +131,6 @@ public class Database {
 
     public void removeMines(@NotNull List<Mine> mines) throws SQLException {
         removeMines(mines, null);
-    }
-
-    public Mine findMine(UnknownMine unknownMine) throws SQLException {
-        String sql = "select * from mines where x = ? and y = ? and z = ? and worldType = ?";
-
-        try(Connection connection = dataSource.getConnection()) {
-            try(PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                preparedStatement.setInt(1, unknownMine.x);
-                preparedStatement.setInt(2, unknownMine.y);
-                preparedStatement.setInt(3, unknownMine.z);
-                preparedStatement.setString(4, unknownMine.worldType.name());
-
-                try(ResultSet resultSet = preparedStatement.executeQuery()) {
-                    if(resultSet.next()) {
-                        int x = resultSet.getInt("x");
-                        int y = resultSet.getInt("y");
-                        int z = resultSet.getInt("z");
-                        MineData mineType = MineData.valueOf(resultSet.getString("mineType"));
-                        World.Environment worldType = World.Environment.valueOf(resultSet.getString("worldType"));
-
-                        return new Mine(x, y, z, mineType, worldType);
-
-                    } else return null;
-                }
-            } finally {
-                connection.close();
-            }
-        }
     }
 
     public List<Mine> getAllMines() throws SQLException {
@@ -188,11 +161,6 @@ public class Database {
         }
     }
 
-    public void subscribeListener(DatabaseListener databaseListener) throws SQLException {
-        databaseListener.onListenerAdded(getAllMines());
-        databaseListeners.add(databaseListener);
-    }
-
     private class DatabaseCleaner extends BukkitRunnable {
         private final Logger logger;
 
@@ -221,9 +189,9 @@ public class Database {
 
             for(World world: plugin.getServer().getWorlds()) {
                 for(Mine mine: mines) {
-                    if(mine.worldType != world.getEnvironment()) continue;
+                    if(mine.getWorldType() != world.getEnvironment()) continue;
 
-                    Block block = world.getBlockAt(mine.x, mine.y, mine.z);
+                    Block block = world.getBlockAt(mine.getX(), mine.getY(), mine.getZ());
                     if(block.getType() == Material.AIR || block.getType() == Material.CAVE_AIR ||
                             block.getType() == Material.VOID_AIR) {
 

@@ -1,22 +1,22 @@
 package me.salatosik.hiddenminesplugin.utils.configuration.mine;
 
-import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.Ground;
-import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.Hook;
+import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.GroundCfg;
+import me.salatosik.hiddenminesplugin.utils.configuration.mine.hook.HookCfg;
 
 public class MineConfiguration {
-    private final Ground ground;
-    private final Hook hook;
+    private final GroundCfg groundCfg;
+    private final HookCfg hookCfg;
 
-    public MineConfiguration(Ground ground, Hook hook) {
-        this.ground = ground;
-        this.hook = hook;
+    public MineConfiguration(GroundCfg groundCfg, HookCfg hookCfg) {
+        this.groundCfg = groundCfg;
+        this.hookCfg = hookCfg;
     }
 
-    public Ground getGround() {
-        return ground;
+    public GroundCfg getGround() {
+        return groundCfg;
     }
 
-    public Hook getHook() {
-        return hook;
+    public HookCfg getHook() {
+        return hookCfg;
     }
 }
