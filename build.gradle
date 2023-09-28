@@ -51,7 +51,3 @@ processResources {
     }
 }
 
-shadowJar {
-    archiveBaseName.set("C:\\Users\\Vitalij\\Desktop\\Spigot Server 1.16.5\\plugins\\hidden-mines-plugin")
-}
-
