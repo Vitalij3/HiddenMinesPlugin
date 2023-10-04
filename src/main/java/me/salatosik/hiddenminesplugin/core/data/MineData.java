@@ -52,9 +52,16 @@ public enum MineData implements BaseData {
         return ingredients;
     }
 
+    private NamespacedKey namespacedKeyInstance = null;
+
     @Override
     public NamespacedKey getNamespacedKeyInstance(JavaPlugin javaPlugin) {
-        return new NamespacedKey(javaPlugin, getNamespacedKeyString());
+        if(namespacedKeyInstance == null) {
+            namespacedKeyInstance = new NamespacedKey(javaPlugin, getNamespacedKeyString());
+            return namespacedKeyInstance;
+        }
+
+        return namespacedKeyInstance;
     }
 
     @Override
