@@ -1,4 +1,4 @@
-package me.salatosik.hiddenminesplugin.core.data.model;
+package me.salatosik.hiddenminesplugin.core.data;
 
 import org.bukkit.Material;
 

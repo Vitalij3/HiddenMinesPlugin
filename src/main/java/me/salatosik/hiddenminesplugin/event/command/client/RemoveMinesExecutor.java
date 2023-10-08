@@ -64,9 +64,9 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
         World playerWorld = player.getWorld();
         List<Mine> removeList = new ArrayList<>();
 
-        for(int i = 0, count = 0; i < minesFromDatabase.size(); i++) {
+        for(int i = 0, count = 0; i < getDatabaseObjects().size(); i++) {
             if(count >= max) break;
-            Mine mine = minesFromDatabase.get(i);
+            Mine mine = new ArrayList<>(getDatabaseObjects()).get(i);
 
             if(mine.getWorldType() != playerWorld.getEnvironment()) continue;
             if(type != null) if(mine.getMineType() != type) continue;
@@ -164,7 +164,7 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                 World playerWorld = player.getLocation().getWorld();
                 int count = 0;
 
-                for(Mine mine: minesFromDatabase) {
+                for(Mine mine: getDatabaseObjects()) {
                     if(mine.getWorldType() != playerWorld.getEnvironment()) continue;
                     if(type != null) if(type != mine.getMineType()) continue;
                     Vector mineVector = new Vector(mine.getX(), mine.getY(), mine.getZ());

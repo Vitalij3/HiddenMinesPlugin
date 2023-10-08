@@ -24,7 +24,13 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
     }
 
     private enum SetupMineState {
-        IS_NOT_GROUND_MINE, IS_NOT_HOOK_MINE, IT_IS_ALREADY_MINE, SUCCESS, CLICKED_BLOCK_IS_NULL, NULL, NOT_ALLOWED
+        IS_NOT_GROUND_MINE,
+        IS_NOT_HOOK_MINE,
+        IT_IS_ALREADY_MINE,
+        SUCCESS,
+        CLICKED_BLOCK_IS_NULL,
+        NULL,
+        NOT_ALLOWED
     }
 
     private SetupMineState setupMine(PlayerInteractEvent event, MineData mineType) {
@@ -122,7 +128,7 @@ public class MinePlaceBreakMineListener extends BaseMineListener {
         if(!itIsPossibleMine(event.getBlock())) return;
 
         UnknownMine unknownMine = new UnknownMine(event.getBlock());
-        Mine mine = UtilMethods.findMineByUnknownMine(minesFromDatabase, unknownMine);
+        Mine mine = UtilMethods.findMineByUnknownMine(getDatabaseObjects(), unknownMine);
         if(mine == null) return;
 
         event.setDropItems(false);

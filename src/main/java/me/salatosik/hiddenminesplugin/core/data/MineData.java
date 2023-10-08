@@ -1,6 +1,5 @@
 package me.salatosik.hiddenminesplugin.core.data;
 
-import me.salatosik.hiddenminesplugin.core.data.model.Ingredient;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -42,12 +41,10 @@ public enum MineData implements BaseData {
         this.ingredients = ingredients;
     }
 
-    @Override
     public String[] getRecipe() {
         return recipe;
     }
 
-    @Override
     public Ingredient[] getIngredients() {
         return ingredients;
     }

@@ -1,6 +1,5 @@
 package me.salatosik.hiddenminesplugin.core.data;
 
-import me.salatosik.hiddenminesplugin.core.data.model.Ingredient;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -29,7 +28,27 @@ public interface BaseData {
     String getDisplayName();
     Material getOutputType();
     String getNamespacedKeyString();
-    String[] getRecipe();
-    Ingredient[] getIngredients();
-    NamespacedKey getNamespacedKeyInstance(JavaPlugin javaPlugin);
+
+    class NamespacedKeyContainer {
+        private NamespacedKey namespacedKey = null;
+
+        public void setNamespacedKey(NamespacedKey namespacedKey) {
+            this.namespacedKey = namespacedKey;
+        }
+
+        public NamespacedKey getNamespacedKey() {
+            return this.namespacedKey;
+        }
+    }
+
+    NamespacedKeyContainer namespacedKeyContainer = new NamespacedKeyContainer();
+
+    default NamespacedKey getNamespacedKeyInstance(JavaPlugin javaPlugin) {
+        if(namespacedKeyContainer.getNamespacedKey() == null) {
+            namespacedKeyContainer.setNamespacedKey(new NamespacedKey(javaPlugin, getNamespacedKeyString()));
+            return namespacedKeyContainer.getNamespacedKey();
+        }
+
+        return namespacedKeyContainer.getNamespacedKey();
+    }
 }

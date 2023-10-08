@@ -20,10 +20,10 @@ repositories {
 
 dependencies {
     compileOnly "com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT"
-    implementation "com.zaxxer:HikariCP:5.0.1"
+
+    // database
     implementation "org.xerial:sqlite-jdbc:3.42.0.0"
     implementation 'com.j256.ormlite:ormlite-jdbc:6.0'
-    implementation "com.google.code.gson:gson:2.10.1"
 }
 
 def targetJavaVersion = 11
@@ -50,4 +50,3 @@ processResources {
         expand props
     }
 }
-

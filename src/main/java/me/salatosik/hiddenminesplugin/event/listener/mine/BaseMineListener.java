@@ -2,23 +2,31 @@ package me.salatosik.hiddenminesplugin.event.listener.mine;
 
 import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
-import me.salatosik.hiddenminesplugin.core.database.DatabaseListener;
 import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.mine.UnknownMine;
-import me.salatosik.hiddenminesplugin.event.listener.BaseListener;
+import me.salatosik.hiddenminesplugin.event.listener.DatabaseListenerWrapper;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.logging.Logger;
 
-public class BaseMineListener extends BaseListener implements DatabaseListener<Mine> {
+public class BaseMineListener extends DatabaseListenerWrapper.MineDatabaseListener implements Listener {
+    protected final JavaPlugin plugin;
+    protected final Database database;
+    protected final Logger logger;
+    protected final Configuration configuration;
+
     protected BaseMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
-        super(plugin, database, plugin.getLogger(), configuration);
+        this.plugin = plugin;
+        this.database = database;
+        this.logger = plugin.getLogger();
+        this.configuration = configuration;
 
         try {
             database.subscribeMineListener(this);
@@ -51,30 +59,6 @@ public class BaseMineListener extends BaseListener implements DatabaseListener<M
             Material.NETHERITE_SHOVEL
     );
 
-    protected LinkedBlockingDeque<Mine> minesFromDatabase;
-
-    @Override
-    public void onListenerAdded(List<Mine> mines) {
-        minesFromDatabase = new LinkedBlockingDeque<>(mines);
-    }
-
-    @Override
-    public void onItemAdd(Mine mine) {
-        minesFromDatabase.add(mine);
-    }
-
-    @Override
-    public void onItemRemove(Mine mine) {
-        if(!minesFromDatabase.isEmpty()) {
-            minesFromDatabase.remove(mine);
-        }
-    }
-
-    @Override
-    public void onItemRemoveList(List<Mine> removedMines) {
-        minesFromDatabase.removeAll(removedMines);
-    }
-
     protected boolean itIsPossibleMine(Block block) {
         Material blockType = block.getType();
         return ALLOWED_MINE_GROUNDS.contains(blockType) || blockType == Material.TRIPWIRE_HOOK;
@@ -91,7 +75,7 @@ public class BaseMineListener extends BaseListener implements DatabaseListener<M
     }
 
     protected boolean itIsMine(UnknownMine unknownMine) {
-        for(Mine mine: minesFromDatabase) if(mine.equals(unknownMine)) return true;
+        for(Mine mine: getDatabaseObjects()) if(mine.equals(unknownMine)) return true;
         return false;
     }
 
@@ -127,7 +111,7 @@ public class BaseMineListener extends BaseListener implements DatabaseListener<M
     }
 
     protected void detonateMineAndRemoveFromDatabase(Location blockLocation, boolean withoutDetonation) {
-        Mine mine = UtilMethods.findMineByLocation(minesFromDatabase, blockLocation);
+        Mine mine = UtilMethods.findMineByLocation(getDatabaseObjects(), blockLocation);
         if(mine == null) return;
 
         UtilMethods.createBukkitAsyncThreadAndStart(plugin,

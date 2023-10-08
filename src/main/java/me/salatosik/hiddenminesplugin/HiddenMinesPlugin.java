@@ -1,7 +1,6 @@
 package me.salatosik.hiddenminesplugin;
 
-import me.salatosik.hiddenminesplugin.core.data.BaseData;
-import me.salatosik.hiddenminesplugin.core.data.model.Ingredient;
+import me.salatosik.hiddenminesplugin.core.data.Ingredient;
 import me.salatosik.hiddenminesplugin.core.data.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.event.command.client.RemoveMinesExecutor;
@@ -28,8 +27,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.logging.Logger;
 
 public final class HiddenMinesPlugin extends JavaPlugin {
@@ -89,10 +86,7 @@ public final class HiddenMinesPlugin extends JavaPlugin {
     }
 
     private void initRecipes() {
-        List<BaseData> baseDataList = new LinkedList<>();
-        baseDataList.addAll(List.of(MineData.values()));
-
-        for(BaseData data: baseDataList) {
+        for(MineData data: MineData.values()) {
             ItemStack itemStack = data.toItemStack(this);
             ShapedRecipe shapedRecipe = new ShapedRecipe(data.getNamespacedKeyInstance(this), itemStack);
             shapedRecipe.shape(data.getRecipe());

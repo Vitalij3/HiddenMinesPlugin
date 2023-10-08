@@ -16,7 +16,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class InteractMineListener extends BaseMineListener {
@@ -33,7 +32,7 @@ public class InteractMineListener extends BaseMineListener {
             Location possibleHookMineLocation = event.getBlock().getLocation();
             UnknownMine possibleMine = new UnknownMine(possibleHookMineLocation);
 
-            for(Mine mine: minesFromDatabase) {
+            for(Mine mine: getDatabaseObjects()) {
                 if(mine.equals(possibleMine)) {
                     detonateMineAndRemoveFromDatabase(possibleHookMineLocation);
                     return;
@@ -43,18 +42,14 @@ public class InteractMineListener extends BaseMineListener {
     }
 
     private class EntityTimer extends BukkitRunnable {
-        private final AtomicInteger worldThreadActive = new AtomicInteger(0);
         public static final int UPDATE_RATE_TICK = 2;
 
         @Override
         public void run() {
-            if(worldThreadActive.get() >= 1) return;
-
             plugin.getServer().getWorlds().forEach((world) -> {
                 UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
-                    synchronized(worldThreadActive) { worldThreadActive.set(worldThreadActive.incrementAndGet()); }
-
-                    List<Mine> filteredMinesFromDatabase = minesFromDatabase.stream().filter((mine) -> mine.getWorldType() == world.getEnvironment()).collect(Collectors.toList());
+                    List<Mine> filteredMinesFromDatabase = getDatabaseObjects()
+                            .stream().filter((mine) -> mine.getWorldType() == world.getEnvironment()).collect(Collectors.toList());
 
                     world.getEntities().forEach((entity) -> {
                         if(!entity.isOnGround()) return;
@@ -73,8 +68,6 @@ public class InteractMineListener extends BaseMineListener {
                             }
                         }
                     });
-
-                    synchronized(worldThreadActive) { worldThreadActive.set(worldThreadActive.decrementAndGet()); }
                 });
             });
         }
