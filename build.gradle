@@ -50,3 +50,9 @@ processResources {
         expand props
     }
 }
+
+boolean customOutputDir = true
+
+shadowJar {
+    if(customOutputDir) archiveBaseName.set("C:\\Users\\Vitalij\\Desktop\\Minecraft Servers\\Spigot Server 1.16.5\\plugins\\hidden-mines-plugin")
+}

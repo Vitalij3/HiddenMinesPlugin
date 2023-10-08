@@ -1,27 +1,31 @@
-package me.salatosik.hiddenminesplugin.event.command;
+package me.salatosik.hiddenminesplugin.event.listener;
 
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
-import org.bukkit.command.CommandExecutor;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.logging.Logger;
 
-public abstract class BaseCommandExecutor implements CommandExecutor {
+public class BaseListener implements Listener {
     private final JavaPlugin plugin;
     private final Database database;
-    private final Configuration configuration;
     private final Logger logger;
+    private final Configuration configuration;
 
-    protected BaseCommandExecutor(JavaPlugin plugin, Database database, Configuration configuration) {
+    public BaseListener(JavaPlugin plugin, Database database, Configuration configuration) {
         this.plugin = plugin;
         this.database = database;
-        this.configuration = configuration;
         this.logger = plugin.getLogger();
+        this.configuration = configuration;
     }
 
     public JavaPlugin getPlugin() {
         return plugin;
+    }
+
+    public Logger getLogger() {
+        return logger;
     }
 
     public Database getDatabase() {
@@ -30,9 +34,5 @@ public abstract class BaseCommandExecutor implements CommandExecutor {
 
     public Configuration getConfiguration() {
         return configuration;
-    }
-
-    public Logger getLogger() {
-        return logger;
     }
 }

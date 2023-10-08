@@ -4,36 +4,18 @@ import me.salatosik.hiddenminesplugin.UtilMethods;
 import me.salatosik.hiddenminesplugin.core.database.Database;
 import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
 import me.salatosik.hiddenminesplugin.core.database.models.mine.UnknownMine;
-import me.salatosik.hiddenminesplugin.event.listener.DatabaseListenerWrapper;
+import me.salatosik.hiddenminesplugin.event.listener.BaseListener;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Logger;
 
-public class BaseMineListener extends DatabaseListenerWrapper.MineDatabaseListener implements Listener {
-    protected final JavaPlugin plugin;
-    protected final Database database;
-    protected final Logger logger;
-    protected final Configuration configuration;
-
+public class BaseMineListener extends BaseListener {
     protected BaseMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
-        this.plugin = plugin;
-        this.database = database;
-        this.logger = plugin.getLogger();
-        this.configuration = configuration;
-
-        try {
-            database.subscribeMineListener(this);
-        } catch(SQLException sqlException) {
-            sqlException.printStackTrace();
-            plugin.getPluginLoader().disablePlugin(plugin);
-        }
+        super(plugin, database, configuration);
     }
 
     public static final List<Material> ALLOWED_MINE_GROUNDS = List.of(
@@ -75,7 +57,7 @@ public class BaseMineListener extends DatabaseListenerWrapper.MineDatabaseListen
     }
 
     protected boolean itIsMine(UnknownMine unknownMine) {
-        for(Mine mine: getDatabaseObjects()) if(mine.equals(unknownMine)) return true;
+        for(Mine mine: getDatabase().getMines()) if(mine.equals(unknownMine)) return true;
         return false;
     }
 
@@ -85,7 +67,7 @@ public class BaseMineListener extends DatabaseListenerWrapper.MineDatabaseListen
     }
 
     protected void detonateMine(Mine mine) {
-        Location mineLocation = mine.toLocation(plugin);
+        Location mineLocation = mine.toLocation(getPlugin());
         if(mineLocation == null) return;
 
         switch(mine.getMineType()) {
@@ -93,30 +75,30 @@ public class BaseMineListener extends DatabaseListenerWrapper.MineDatabaseListen
                 mineLocation.setY(mineLocation.getBlockY() + 1);
                 mineLocation.getWorld().createExplosion(
                         mineLocation,
-                        (float) configuration.getMineConfiguration().getGround().getExplosionPower(),
-                        configuration.getMineConfiguration().getGround().getFireBlocks(),
-                        configuration.getMineConfiguration().getGround().getBreakBlocks()
+                        (float) getConfiguration().getMineConfiguration().getGround().getExplosionPower(),
+                        getConfiguration().getMineConfiguration().getGround().getFireBlocks(),
+                        getConfiguration().getMineConfiguration().getGround().getBreakBlocks()
                 );
                 break;
 
             case HOOK:
                 mineLocation.getWorld().createExplosion(
                         mineLocation,
-                        (float) configuration.getMineConfiguration().getHook().getExplosionPower(),
-                        configuration.getMineConfiguration().getHook().getFireBlocks(),
-                        configuration.getMineConfiguration().getHook().getBreakBlocks()
+                        (float) getConfiguration().getMineConfiguration().getHook().getExplosionPower(),
+                        getConfiguration().getMineConfiguration().getHook().getFireBlocks(),
+                        getConfiguration().getMineConfiguration().getHook().getBreakBlocks()
                 );
                 break;
         }
     }
 
     protected void detonateMineAndRemoveFromDatabase(Location blockLocation, boolean withoutDetonation) {
-        Mine mine = UtilMethods.findMineByLocation(getDatabaseObjects(), blockLocation);
+        Mine mine = UtilMethods.findMineByLocation(getDatabase().getMines(), blockLocation);
         if(mine == null) return;
 
-        UtilMethods.createBukkitAsyncThreadAndStart(plugin,
-                () -> UtilMethods.removeMineFromDatabase(mine, database,
-                        (v) -> UtilMethods.createBukkitThreadAndStart(plugin, () -> {
+        UtilMethods.createBukkitAsyncThreadAndStart(getPlugin(),
+                () -> UtilMethods.removeMineFromDatabase(mine, getDatabase(),
+                        (v) -> UtilMethods.createBukkitThreadAndStart(getPlugin(), () -> {
                             if(!withoutDetonation) detonateMine(mine);
         })));
     }

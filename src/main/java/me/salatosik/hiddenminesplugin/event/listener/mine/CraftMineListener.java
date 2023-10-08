@@ -23,10 +23,10 @@ public class CraftMineListener extends BaseMineListener {
         ItemStack resultItemStack = event.getRecipe().getResult();
         ItemMeta resultItemMeta = resultItemStack.getItemMeta();
         PersistentDataContainer resultPersistentContainer = resultItemMeta.getPersistentDataContainer();
-        MineConfiguration mineConfiguration = configuration.getMineConfiguration();
+        MineConfiguration mineConfiguration = getConfiguration().getMineConfiguration();
 
         for(MineData mineData: MineData.values()) {
-            String minePersistentData = resultPersistentContainer.get(mineData.getNamespacedKeyInstance(plugin), PersistentDataType.STRING);
+            String minePersistentData = resultPersistentContainer.get(mineData.getNamespacedKeyInstance(getPlugin()), PersistentDataType.STRING);
 
             if(minePersistentData == null) continue;
 

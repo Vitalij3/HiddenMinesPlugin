@@ -26,20 +26,12 @@ public class TableMine {
     @DatabaseField(generatedId = true)
     private long id;
 
-    public TableMine(int x, int y, int z, MineData mineData, World.Environment worldType) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.mineTypeString = mineData.name();
-        this.worldTypeString = worldType.name();
-    }
-
-    public TableMine(int x, int y, int z, String mineTypeString, String worldTypeString) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.mineTypeString = mineTypeString;
-        this.worldTypeString = worldTypeString;
+    public TableMine(Mine mine) {
+        this.x = mine.getX();
+        this.y = mine.getY();
+        this.z = mine.getZ();
+        this.mineTypeString = mine.getMineType().name();
+        this.worldTypeString = mine.getWorldType().name();
     }
 
     public TableMine() {}

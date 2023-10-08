@@ -2,6 +2,7 @@ package me.salatosik.hiddenminesplugin.core.database;
 
 import java.io.File;
 import java.sql.*;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -31,6 +32,7 @@ public class Database {
     private final Dao<TableMine, Object> minesDao;
 
     private final LinkedList<DatabaseListener<Mine>> databaseMineListeners = new LinkedList<>();
+    private List<Mine> minesFromDatabase = null;
 
     public Database(@NotNull File databaseFile, @NotNull JavaPlugin plugin) throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
@@ -44,6 +46,30 @@ public class Database {
 
         DatabaseCleaner databaseCleaner = new DatabaseCleaner();
         databaseCleaner.runTaskTimerAsynchronously(plugin, 20, DatabaseCleaner.UPDATE_RATE);
+
+        subscribeMineListener(new DatabaseListener<>() {
+            @Override
+            public void onItemAdd(Mine item) {
+                minesFromDatabase.add(item);
+            }
+
+            @Override
+            public void onItemRemove(Mine item) {
+                minesFromDatabase.remove(item);
+            }
+
+            @Override
+            public void onItemRemoveList(List<Mine> items) {
+                minesFromDatabase.removeAll(items);
+            }
+
+            @Override
+            public void onListenerAdded(List<Mine> items) {
+                if(minesFromDatabase == null) {
+                    minesFromDatabase = items;
+                }
+            }
+        });
     }
 
     private <T> void notifyListeners(Consumer<DatabaseListener<T>> consumer, List<DatabaseListener<T>> databaseListeners) {
@@ -51,12 +77,24 @@ public class Database {
         bukkitRunnable.runTask(plugin);
     }
 
-    public void subscribeMineListener(DatabaseListener<Mine> databaseMineListener) throws SQLException {
-        databaseMineListener.onListenerAdded(getAllMines());
+    public void subscribeMineListener(DatabaseListener<Mine> databaseMineListener) {
+        if(minesFromDatabase != null) databaseMineListener.onListenerAdded(Collections.unmodifiableList(minesFromDatabase));
+        else {
+            try {
+                databaseMineListener.onListenerAdded(getAllMines());
+            } catch(Exception exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+
         databaseMineListeners.add(databaseMineListener);
     }
 
-    public void closePooledConnection() {
+    public synchronized List<Mine> getMines() {
+        return Collections.unmodifiableList(minesFromDatabase);
+    }
+
+    public synchronized void closePooledConnection() {
         try {
             connectionSource.close();
         } catch(Exception exception) {
@@ -64,13 +102,13 @@ public class Database {
         }
     }
 
-    public void addMine(@NotNull Mine mine) throws SQLException {
-        TableMine tableMine = new TableMine(mine.getX(), mine.getY(), mine.getZ(), mine.getMineType(), mine.getWorldType());
+    public synchronized void addMine(@NotNull Mine mine) throws SQLException {
+        TableMine tableMine = new TableMine(mine);
         minesDao.create(tableMine);
         notifyListeners((listener) -> listener.onItemAdd(mine), databaseMineListeners);
     }
 
-    public void removeMine(@NotNull Mine mine) throws SQLException {
+    public synchronized void removeMine(@NotNull Mine mine) throws SQLException {
         for(TableMine tableMine: minesDao.queryForAll()) {
             if(tableMine.equalsMine(mine)) {
                 minesDao.deleteById(tableMine.getId());
@@ -80,7 +118,7 @@ public class Database {
         }
     }
 
-    public void removeMines(@NotNull List<Mine> mines, @Nullable Consumer<Mine> onEach) throws SQLException {
+    public synchronized void removeMines(@NotNull List<Mine> mines, @Nullable Consumer<Mine> onEach) throws SQLException {
         LinkedList<Mine> removedMines = new LinkedList<>();
 
         for(TableMine tableMine: minesDao.queryForAll()) {
@@ -100,7 +138,7 @@ public class Database {
         removeMines(mines, null);
     }
 
-    public List<Mine> getAllMines() throws SQLException {
+    private synchronized List<Mine> getAllMines() throws SQLException {
         List<Mine> mines = new LinkedList<>();
         minesDao.queryForAll().forEach((tableMine) -> mines.add(tableMine.toMine()));
         return mines;
@@ -122,18 +160,11 @@ public class Database {
         }
 
         @Override
-        public synchronized void run() {
-            List<Mine> mines;
-            try { mines = getAllMines(); }
-            catch(SQLException sqlException) {
-                databaseLog("Failed to get all mines!", Level.WARNING);
-                return;
-            }
-
+        public void run() {
             final List<Mine> clearMines = new LinkedList<>();
 
             for(World world: plugin.getServer().getWorlds()) {
-                for(Mine mine: mines) {
+                for(Mine mine: getMines()) {
                     if(mine.getWorldType() != world.getEnvironment()) continue;
 
                     Block block = world.getBlockAt(mine.getX(), mine.getY(), mine.getZ());

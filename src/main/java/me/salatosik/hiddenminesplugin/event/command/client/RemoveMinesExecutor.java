@@ -64,9 +64,11 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
         World playerWorld = player.getWorld();
         List<Mine> removeList = new ArrayList<>();
 
-        for(int i = 0, count = 0; i < getDatabaseObjects().size(); i++) {
+        List<Mine> minesFromDatabase = getDatabase().getMines();
+
+        for(int i = 0, count = 0; i < minesFromDatabase.size(); i++) {
             if(count >= max) break;
-            Mine mine = new ArrayList<>(getDatabaseObjects()).get(i);
+            Mine mine = minesFromDatabase.get(i);
 
             if(mine.getWorldType() != playerWorld.getEnvironment()) continue;
             if(type != null) if(mine.getMineType() != type) continue;
@@ -81,12 +83,12 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
         }
 
         if(!removeList.isEmpty()) {
-            UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
+            UtilMethods.createBukkitAsyncThreadAndStart(getPlugin(), () -> {
                 if(detonate) {
                     List<Mine> detonateMines = new LinkedList<>();
-                    UtilMethods.removeMinesFromDatabase(removeList, database, detonateMines::add);
+                    UtilMethods.removeMinesFromDatabase(removeList, getDatabase(), detonateMines::add);
 
-                    UtilMethods.createBukkitThreadAndStart(plugin, () -> {
+                    UtilMethods.createBukkitThreadAndStart(getPlugin(), () -> {
                         detonateMines.forEach((mine) -> {
                             switch(mine.getMineType()) {
                                 case HOOK:
@@ -95,9 +97,9 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                                             hookMineLocation.getX(),
                                             hookMineLocation.getY(),
                                             hookMineLocation.getZ(),
-                                            (float) configuration.getMineConfiguration().getHook().getExplosionPower(),
-                                            configuration.getMineConfiguration().getHook().getFireBlocks(),
-                                            configuration.getMineConfiguration().getHook().getBreakBlocks()
+                                            (float) getConfiguration().getMineConfiguration().getHook().getExplosionPower(),
+                                            getConfiguration().getMineConfiguration().getHook().getFireBlocks(),
+                                            getConfiguration().getMineConfiguration().getHook().getBreakBlocks()
                                     );
                                     break;
 
@@ -107,16 +109,16 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                                             groundMineLocation.getX(),
                                             groundMineLocation.getY(),
                                             groundMineLocation.getZ(),
-                                            (float) configuration.getMineConfiguration().getGround().getExplosionPower(),
-                                            configuration.getMineConfiguration().getGround().getFireBlocks(),
-                                            configuration.getMineConfiguration().getGround().getBreakBlocks()
+                                            (float) getConfiguration().getMineConfiguration().getGround().getExplosionPower(),
+                                            getConfiguration().getMineConfiguration().getGround().getFireBlocks(),
+                                            getConfiguration().getMineConfiguration().getGround().getBreakBlocks()
                                     );
                                     break;
                             }
                         });
                     });
 
-                } else UtilMethods.removeMinesFromDatabase(removeList, database);
+                } else UtilMethods.removeMinesFromDatabase(removeList, getDatabase());
 
                 player.sendMessage(ChatColor.GREEN + String.valueOf(removeList.size()) + " mines removed!");
             });
@@ -164,7 +166,7 @@ public class RemoveMinesExecutor extends BaseClientExecutor implements TabComple
                 World playerWorld = player.getLocation().getWorld();
                 int count = 0;
 
-                for(Mine mine: getDatabaseObjects()) {
+                for(Mine mine: getDatabase().getMines()) {
                     if(mine.getWorldType() != playerWorld.getEnvironment()) continue;
                     if(type != null) if(type != mine.getMineType()) continue;
                     Vector mineVector = new Vector(mine.getX(), mine.getY(), mine.getZ());

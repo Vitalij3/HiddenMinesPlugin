@@ -2,6 +2,7 @@ package me.salatosik.hiddenminesplugin.event.listener.mine;
 
 import me.salatosik.hiddenminesplugin.core.data.MineData;
 import me.salatosik.hiddenminesplugin.core.database.Database;
+import me.salatosik.hiddenminesplugin.core.database.DatabaseListener;
 import me.salatosik.hiddenminesplugin.core.database.models.mine.Mine;
 import me.salatosik.hiddenminesplugin.utils.configuration.Configuration;
 import me.salatosik.hiddenminesplugin.utils.configuration.mine.ground.GroundCfg;
@@ -18,28 +19,25 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.List;
 
-public class CosmeticMineListener extends BaseMineListener {
+public class CosmeticMineListener extends BaseMineListener implements DatabaseListener<Mine> {
     public CosmeticMineListener(JavaPlugin plugin, Database database, Configuration configuration) {
         super(plugin, database, configuration);
+        database.subscribeMineListener(this);
     }
 
     @Override
     public void onItemAdd(Mine mine) {
-        super.onItemAdd(mine);
         spawnMineArmorStand(mine);
     }
 
     @Override
     public void onItemRemove(Mine mine) {
-        super.onItemRemove(mine);
         removeMineArmorStand(mine);
     }
 
     @Override
     public void onListenerAdded(List<Mine> mines) {
-        super.onListenerAdded(mines);
-
-        plugin.getServer().getWorlds().forEach((world) -> {
+        getPlugin().getServer().getWorlds().forEach((world) -> {
             world.getEntities().forEach((entity) -> {
                 String entityCustomName = entity.getCustomName();
                 if(entityCustomName == null) return;
@@ -60,14 +58,13 @@ public class CosmeticMineListener extends BaseMineListener {
             });
         });
 
-        HookCfg hookCfg = configuration.getMineConfiguration().getHook();
-        GroundCfg groundCfgCfg = configuration.getMineConfiguration().getGround();
+        HookCfg hookCfg = getConfiguration().getMineConfiguration().getHook();
+        GroundCfg groundCfgCfg = getConfiguration().getMineConfiguration().getGround();
         if(hookCfg.isAllow() || groundCfgCfg.isAllow()) mines.forEach(this::spawnMineArmorStand);
     }
 
     @Override
     public void onItemRemoveList(List<Mine> removedMines) {
-        super.onItemRemoveList(removedMines);
         removedMines.forEach(this::removeMineArmorStand);
     }
 
@@ -106,7 +103,7 @@ public class CosmeticMineListener extends BaseMineListener {
 
         switch(mine.getMineType()) {
             case GROUND:
-                GroundCfg groundCfg = configuration.getMineConfiguration().getGround();
+                GroundCfg groundCfg = getConfiguration().getMineConfiguration().getGround();
                 if(groundCfg.getCosmetic()) {
                     Material cosmeticMaterial = Material.TNT;
                     if(groundCfg.getAdaptiveCosmetic()) cosmeticMaterial = mineLocation.getBlock().getType();
@@ -115,7 +112,7 @@ public class CosmeticMineListener extends BaseMineListener {
                 break;
 
             case HOOK:
-                HookCfg hookCfgConfig = configuration.getMineConfiguration().getHook();
+                HookCfg hookCfgConfig = getConfiguration().getMineConfiguration().getHook();
                 if(hookCfgConfig.getCosmetic()) mineArmorStand.setItem(EquipmentSlot.HEAD, new ItemStack(Material.TNT, 1));
                 break;
         }
@@ -156,7 +153,7 @@ public class CosmeticMineListener extends BaseMineListener {
     }
 
     private World findWorldByEnvironmentName(World.Environment environment) {
-        for(World world: plugin.getServer().getWorlds()) {
+        for(World world: getPlugin().getServer().getWorlds()) {
             if(world.getEnvironment().name().equals(environment.name())) {
                 return world;
             }

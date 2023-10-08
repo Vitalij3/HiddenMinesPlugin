@@ -32,7 +32,7 @@ public class InteractMineListener extends BaseMineListener {
             Location possibleHookMineLocation = event.getBlock().getLocation();
             UnknownMine possibleMine = new UnknownMine(possibleHookMineLocation);
 
-            for(Mine mine: getDatabaseObjects()) {
+            for(Mine mine: getDatabase().getMines()) {
                 if(mine.equals(possibleMine)) {
                     detonateMineAndRemoveFromDatabase(possibleHookMineLocation);
                     return;
@@ -46,9 +46,9 @@ public class InteractMineListener extends BaseMineListener {
 
         @Override
         public void run() {
-            plugin.getServer().getWorlds().forEach((world) -> {
-                UtilMethods.createBukkitAsyncThreadAndStart(plugin, () -> {
-                    List<Mine> filteredMinesFromDatabase = getDatabaseObjects()
+            getPlugin().getServer().getWorlds().forEach((world) -> {
+                UtilMethods.createBukkitAsyncThreadAndStart(getPlugin(), () -> {
+                    List<Mine> filteredMinesFromDatabase = getDatabase().getMines()
                             .stream().filter((mine) -> mine.getWorldType() == world.getEnvironment()).collect(Collectors.toList());
 
                     world.getEntities().forEach((entity) -> {
