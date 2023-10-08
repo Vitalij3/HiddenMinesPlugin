@@ -33,13 +33,12 @@ public class DatabaseListenerWrapper<T extends DatabaseObject> implements Databa
         staticObjects.removeAll(items);
     }
 
-    private boolean isFirstListenerInit = true;
-
     @Override
     public void onListenerAdded(List<T> items) {
-        if(isFirstListenerInit) {
-            isFirstListenerInit = false;
-            staticObjects.addAll(items);
+        for(T item: items) {
+            if(!staticObjects.contains(item)) {
+                staticObjects.add(item);
+            }
         }
     }
 
