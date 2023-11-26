@@ -1,7 +1,0 @@
-name: HiddenMines
-version: '2.0'
-author: Salatosik
-depend: [ProtocolLib]
-main: salatosik.hiddenmines.HiddenMines
-api-version: '1.20'
-load: POSTWORLD
