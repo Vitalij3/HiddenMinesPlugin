@@ -1,8 +1,10 @@
 # Hidden mines plugin _2.0_
 Plugin adds the mines who can explode.
 
-<td><img src="images/ground_mine.png" alt="img" width="200" height="100"/></td>
-<td><img src="images/hook_mine.png" alt="img" width="200" height="100"/></td>
+<table>
+  <td><img src="images/ground_mine.png" alt="img" width="200" height="100"/></td>
+  <td><img src="images/hook_mine.png" alt="img" width="200" height="100"/></td>
+</table>
 
 # Tested versions
 - 1.20
