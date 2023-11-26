@@ -1,0 +1,23 @@
+database:
+  filename: database.db
+
+mine:
+  ground:
+    explosionPower: 4
+    breakBlocks: false
+    recipe:
+      ingredients: ["STONE_PRESSURE_PLATE", "TNT"]
+      shape: ["X", "Y"]
+    localization:
+      name: "Ground mine"
+      lore: ["This is ground mine", "and she do boooom!"]
+
+  hook:
+    explosionPower: 2
+    breakBlocks: false
+    recipe:
+      ingredients: ["TNT", "STONE_BUTTON"]
+      shape: ["X", "Y"]
+    localization:
+      name: "Hook mine"
+      lore: [ "This is hook mine", "and she do boooom!" ]
