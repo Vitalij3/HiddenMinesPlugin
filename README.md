@@ -1,4 +1,4 @@
-# Hidden mines plugin _2.0_
+# Hidden mines plugin
 Plugin adds the mines who can explode.
 
 <table>
