@@ -18,19 +18,7 @@ public class Database {
     private final Dao<MineOfDatabase, Long> mineDao;
 
     @SneakyThrows
-    public Database(File databaseFile) {
-        Class.forName("org.sqlite.JDBC");
-        jdbcPooledConnectionSource = new JdbcPooledConnectionSource("jdbc:sqlite:%s".formatted(databaseFile.getAbsolutePath()));
-        TableUtils.createTableIfNotExists(jdbcPooledConnectionSource, MineOfDatabase.class);
-
-        mineDao = DaoManager.createDao(jdbcPooledConnectionSource, MineOfDatabase.class);
-        previousSavedMines.addAll(mineDao.queryForAll().stream().map(MineOfDatabase::toMine).toList());
-
-        TableUtils.clearTable(jdbcPooledConnectionSource, MineOfDatabase.class);
-    }
-
-    @SneakyThrows
-    private static File createDatabaseFileIfNotExists(String databaseFilename) {
+    private static void createDatabaseFileIfNotExists(String databaseFilename) {
         File file = new File(databaseFilename);
 
         if(!file.exists()) {
@@ -38,18 +26,30 @@ public class Database {
                 throw new IOException("Failed to create the database file.");
             }
         }
+    }
 
-        return file;
+    @SneakyThrows
+    public Database(File databaseFile) {
+        createDatabaseFileIfNotExists(databaseFile.getAbsolutePath());
+
+        Class.forName("org.sqlite.JDBC");
+        jdbcPooledConnectionSource = new JdbcPooledConnectionSource("jdbc:sqlite:%s".formatted(databaseFile.getAbsolutePath()));
+        TableUtils.createTableIfNotExists(jdbcPooledConnectionSource, MineOfDatabase.class);
+
+        mineDao = DaoManager.createDao(jdbcPooledConnectionSource, MineOfDatabase.class);
+        oldSavedMines.addAll(mineDao.queryForAll().stream().map(MineOfDatabase::toMine).toList());
+
+        TableUtils.clearTable(jdbcPooledConnectionSource, MineOfDatabase.class);
     }
 
     public Database(String databaseFilename) {
-        this(createDatabaseFileIfNotExists(databaseFilename));
+        this(new File(databaseFilename));
     }
 
-    private final List<Mine> previousSavedMines = new ArrayList<>();
+    private final List<Mine> oldSavedMines = new ArrayList<>();
 
-    public List<Mine> getPreviousSavedMines() {
-        return previousSavedMines;
+    public List<Mine> getOldSavedMines() {
+        return new ArrayList<>(oldSavedMines);
     }
 
     @SneakyThrows
@@ -59,11 +59,10 @@ public class Database {
         }
 
         TableUtils.clearTable(jdbcPooledConnectionSource, MineOfDatabase.class);
-
         mineDao.create(mines.stream().map(Mine::toMineOfDatabase).toList());
 
-        previousSavedMines.clear();
-        previousSavedMines.addAll(mines);
+        oldSavedMines.clear();
+        oldSavedMines.addAll(mines);
     }
 
     private boolean connectionClosed = false;

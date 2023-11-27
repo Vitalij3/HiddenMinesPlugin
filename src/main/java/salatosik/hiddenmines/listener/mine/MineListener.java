@@ -26,7 +26,7 @@ import java.util.Map;
 public class MineListener extends BaseMineListener {
     public MineListener(PluginConfiguration configuration, MineManager mineManager) {
         super(configuration, mineManager);
-        HiddenMines.runTimerTask(new PlayerMoveTimer(), 6);
+        HiddenMines.runTimerTask(new PlayerMoveTimer(), 5);
     }
 
     @EventHandler

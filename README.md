@@ -18,6 +18,7 @@ You are see a configuration structure:
 ```yaml
 database:
   filename: database.db
+  saveRate: 2400
 
 mine:
   ground:
@@ -42,7 +43,8 @@ mine:
 ```
 
 #### Database
-- `database.filename` - database file name
+- `filename` - database file name
+- `saveRate` - the saving rate of mines, for additional reliability
 
 #### Mine
 You can see that structure of mine section is equal, therefore, I will talk about the parameters in a general form.

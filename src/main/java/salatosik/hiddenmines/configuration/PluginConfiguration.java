@@ -11,6 +11,7 @@ import java.util.List;
 @Getter
 public class PluginConfiguration {
     private final String databaseFilename;
+    private final long databaseSaveRate;
 
     private final ShapedRecipeSection shapedRecipeSectionGround;
     private final ShapedRecipeSection shapedRecipeSectionHook;
@@ -34,6 +35,7 @@ public class PluginConfiguration {
         this.hookMineLocalizationSection = getLocalizationSection("mine.hook.localization", cfg);
         this.groundMineBreakBlocks = cfg.getBoolean("mine.ground.breakBlocks", false);
         this.hookMineBreakBlocks = cfg.getBoolean("mine.hook.breakBlocks", false);
+        this.databaseSaveRate = cfg.getLong("database.saveRate", 20 * 60 * 2);
     }
 
     private static ConfigurationSection getConfigurationSection(String key, FileConfiguration fileConfiguration) {

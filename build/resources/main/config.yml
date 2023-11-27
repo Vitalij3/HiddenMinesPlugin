@@ -1,5 +1,6 @@
 database:
   filename: database.db
+  saveRate: 2400
 
 mine:
   ground:

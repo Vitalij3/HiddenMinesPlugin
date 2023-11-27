@@ -23,7 +23,7 @@ public final class HiddenMines extends JavaPlugin {
         saveDefaultConfig();
         PluginConfiguration configuration = new PluginConfiguration(getConfig());
 
-        MineManager mineManager = new MineManager(new File(getDataFolder().getAbsoluteFile(), configuration.getDatabaseFilename()).getAbsoluteFile());
+        MineManager mineManager = new MineManager(new File(getDataFolder().getAbsoluteFile(), configuration.getDatabaseFilename()).getAbsoluteFile(), configuration.getDatabaseSaveRate());
         PluginManager pluginManager = getServer().getPluginManager();
 
         pluginManager.registerEvents(new MineListener(configuration,mineManager), this);
@@ -44,6 +44,19 @@ public final class HiddenMines extends JavaPlugin {
 
     public static void runTimerTask(BukkitRunnable bukkitRunnable, long period) {
         bukkitRunnable.runTaskTimer(getJavaPlugin(), 20, period);
+    }
+
+    public static void runTimeTaskAsynchronously(BukkitRunnable bukkitRunnable, long period) {
+        bukkitRunnable.runTaskTimerAsynchronously(getJavaPlugin(), 20, period);
+    }
+
+    public static void runTimeTaskAsynchronously(Runnable runnable, long period) {
+        runTimeTaskAsynchronously(new BukkitRunnable() {
+            @Override
+            public void run() {
+                runnable.run();
+            }
+        }, period);
     }
 
     public static void runTaskLater(BukkitRunnable bukkitRunnable, long delay) {

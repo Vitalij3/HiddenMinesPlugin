@@ -19,8 +19,8 @@ import java.util.List;
 public class MineManager {
     private final List<Mine> mines;
 
-    public MineManager(Database database) {
-        mines = database.getPreviousSavedMines();
+    public MineManager(Database database, long saveRate) {
+        mines = database.getOldSavedMines();
 
         HiddenMines.registerListener(new Listener() {
             @EventHandler(priority = EventPriority.HIGH)
@@ -29,14 +29,22 @@ public class MineManager {
                 database.closeConnection();
             }
         });
+
+        HiddenMines.runTimeTaskAsynchronously(() -> {
+            synchronized(database) {
+                database.saveAll(mines);
+                mines.clear();
+                mines.addAll(database.getOldSavedMines());
+            }
+        }, saveRate);
     }
 
-    public MineManager(File databaseFile) {
-        this(new Database(databaseFile));
+    public MineManager(File databaseFile, long saveRate) {
+        this(new Database(databaseFile), saveRate);
     }
 
-    public MineManager(String databaseFilename) {
-        this(new Database(databaseFilename));
+    public MineManager(String databaseFilename, long saveRate) {
+        this(new Database(databaseFilename), saveRate);
     }
 
     public void add(Mine mine) {
