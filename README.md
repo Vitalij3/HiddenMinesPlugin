@@ -58,5 +58,5 @@ You can see that structure of mine section is equal, therefore, I will talk abou
   
 
 - `localization`
-  - `name` the name of item
+  - `name` - the name of item
   - `lore` - the lore of item
