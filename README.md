@@ -1,5 +1,5 @@
 # Hidden mines plugin
-Plugin adds the mines who can explode.
+Plugin adds mines which can explode.
 
 <table>
   <td><img src="images/ground_mine.png" alt="img" width="200" height="100"/></td>
